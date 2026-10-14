@@ -1,5 +1,5 @@
 import Post from "~/server/models/post";
-import sanitize from "dompurify";
+import {sanitizeContent} from "~/server/services/contentSanitizer";
 
 export default defineEventHandler(async (event/**/) => {
 
@@ -17,7 +17,7 @@ export default defineEventHandler(async (event/**/) => {
 
     if (body.id === undefined || body.id === null) {
 
-        const content = sanitize(body.content);
+        const content = sanitizeContent(body.content);
 
         try {
             return await Post.create({
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event/**/) => {
         await Post.update(
             {
                 postTitle: body.postTitle,
-                content: sanitize(body.content),
+                content: sanitizeContent(body.content),
             },
             {
                 where: {
