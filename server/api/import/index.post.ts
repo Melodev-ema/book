@@ -3,7 +3,6 @@ import {requireUserSession} from '~/server/utils/session';
 import type { ImportResult} from "~/server/utils/importer/importFromJson";
 import {importFromJson, importFromText} from "~/server/utils/importer/importFromJson";
 
-
 export default defineEventHandler(async (event) => {
     await requireUserSession(event);
 
@@ -88,8 +87,7 @@ export default defineEventHandler(async (event) => {
             }
         }),
         results[0]
-    )
-
+    );
 
     return {
         result: mergedResult,

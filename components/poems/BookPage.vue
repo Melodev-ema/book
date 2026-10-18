@@ -1,90 +1,90 @@
 <template>
-  <FragmentContainer>
-    <p
-        v-if="loadError"
-        class="p-8 text-center"
-        role="alert"
-        :data-book-error="loadError"
-    >{{ loadError }}</p>
-    <div
-        v-else-if="loaded && bookStore.configLoaded"
-        class="flex flex-col items-center w-full book"
-        :class="[bookStore.bookCssClass, {excerpt: isExcerpt}]"
-        :data-book-texts="posts.length">
-        <CoverPage/>
-        <BasePage>
-            <!--            Page de faux-titre : Contient simplement le titre du recueil ou une citation évocatrice.-->
-            <h1 class="title">{{ bookStore.config.title }}</h1>
-            <h3 class="title">{{ bookStore.config.author }}</h3>
-            <h4 class="title">{{ bookStore.config.years }}</h4>
-            <p
+    <FragmentContainer>
+        <p
+            v-if="loadError"
+            class="p-8 text-center"
+            role="alert"
+            :data-book-error="loadError"
+        >{{ loadError }}</p>
+        <div
+            v-else-if="loaded && bookStore.configLoaded"
+            class="flex flex-col items-center w-full book"
+            :class="[bookStore.bookCssClass, {excerpt: isExcerpt}]"
+            :data-book-texts="posts.length">
+            <CoverPage/>
+            <BasePage>
+                <!--            Page de faux-titre : Contient simplement le titre du recueil ou une citation évocatrice.-->
+                <h1 class="title">{{ bookStore.config.title }}</h1>
+                <h3 class="title">{{ bookStore.config.author }}</h3>
+                <h4 class="title">{{ bookStore.config.years }}</h4>
+                <p
+                    v-if="isExcerpt"
+                    class="title italic">— Extrait —</p>
+            </BasePage>
+            <BasePage v-if="bookStore.config.dedicationText">
+
+                <!--            Dédicace : Une page où l'auteur peut dédier le recueil à une personne ou exprimer un hommage.-->
+                <h2 class="title">Dédicace</h2>
+                <p
+                    v-for="(paragraph, i) in dedicationParagraphs"
+                    :key="'ded-' + i"
+                    class="text-left">{{ paragraph }}</p>
+
+            </BasePage>
+            <BasePage v-if="bookStore.config.prefaceText">
+
+                <h2 class="title">Préface</h2>
+                <p
+                    v-for="(paragraph, i) in prefaceParagraphs"
+                    :key="'pre-' + i"
+                    class="text-left">{{ paragraph }}</p>
+
+            </BasePage>
+            <template v-if="tocPosition === 'start'">
+                <TocPage
+                    v-for="(lines, i) in tocPages"
+                    :key="'toc-' + i"
+                    :lines="lines"
+                    :is-first="i === 0"
+                    :page="firstTocPage + i"
+                />
+            </template>
+            <template
+                v-for="(page, i) in bodyPages"
+                :key="'body-' + page.number">
+                <PartPage
+                    v-if="page.type === 'part'"
+                    :numeral="page.numeral"
+                    :title="page.title"
+                />
+                <PoemPage
+                    v-else
+                    :id="page.post.id"
+                    :next-page-id="textPostId(bodyPages[i + 1])"
+                    :prev-page-id="textPostId(bodyPages[i - 1])"
+                    :title="page.post.postTitle"
+                    :content="page.post.content"
+                    :page="page.number"
+                    :date="page.post.publishDate"
+                    :author="page.post.author"
+                    :show-signature="bookStore.config.showSignature"
+                />
+            </template>
+            <template v-if="tocPosition === 'end'">
+                <TocPage
+                    v-for="(lines, i) in tocPages"
+                    :key="'toc-' + i"
+                    :lines="lines"
+                    :is-first="i === 0"
+                    :page="firstTocPage + i"
+                />
+            </template>
+            <ExcerptEndPage
                 v-if="isExcerpt"
-                class="title italic">— Extrait —</p>
-        </BasePage>
-        <BasePage v-if="bookStore.config.dedicationText">
-
-            <!--            Dédicace : Une page où l'auteur peut dédier le recueil à une personne ou exprimer un hommage.-->
-            <h2 class="title">Dédicace</h2>
-            <p
-                v-for="(paragraph, i) in dedicationParagraphs"
-                :key="'ded-' + i"
-                class="text-left">{{ paragraph }}</p>
-
-        </BasePage>
-        <BasePage v-if="bookStore.config.prefaceText">
-
-            <h2 class="title">Préface</h2>
-            <p
-                v-for="(paragraph, i) in prefaceParagraphs"
-                :key="'pre-' + i"
-                class="text-left">{{ paragraph }}</p>
-
-        </BasePage>
-        <template v-if="tocPosition === 'start'">
-            <TocPage
-                v-for="(lines, i) in tocPages"
-                :key="'toc-' + i"
-                :lines="lines"
-                :is-first="i === 0"
-                :page="firstTocPage + i"
-            />
-        </template>
-        <template
-            v-for="(page, i) in bodyPages"
-            :key="'body-' + page.number">
-            <PartPage
-                v-if="page.type === 'part'"
-                :numeral="page.numeral"
-                :title="page.title"
-            />
-            <PoemPage
-                v-else
-                :id="page.post.id"
-                :next-page-id="textPostId(bodyPages[i + 1])"
-                :prev-page-id="textPostId(bodyPages[i - 1])"
-                :title="page.post.postTitle"
-                :content="page.post.content"
-                :page="page.number"
-                :date="page.post.publishDate"
-                :author="page.post.author"
-                :show-signature="bookStore.config.showSignature"
-            />
-        </template>
-        <template v-if="tocPosition === 'end'">
-            <TocPage
-                v-for="(lines, i) in tocPages"
-                :key="'toc-' + i"
-                :lines="lines"
-                :is-first="i === 0"
-                :page="firstTocPage + i"
-            />
-        </template>
-        <ExcerptEndPage
-            v-if="isExcerpt"
-            :remaining="excerptRemaining"/>
-        <EndPage v-else/>
-    </div>
-  </FragmentContainer>
+                :remaining="excerptRemaining"/>
+            <EndPage v-else/>
+        </div>
+    </FragmentContainer>
 </template>
 
 <script lang="ts">
@@ -164,7 +164,7 @@ export default {
         }
     },
     methods: {
-        // Remplace le useHead de Nuxt : classe du body, taille @page et titre (repris par Chrome pour le PDF)
+        // Applique au document : classe du body, taille @page et titre (repris par Chrome pour le PDF)
         applyDocumentSettings() {
             document.body.classList.add(this.bookStore.bookCssClass);
             document.body.dataset.theme = 'dark';

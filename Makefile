@@ -1,6 +1,6 @@
 # --- variables ajustables ---------------------------------
 DC       ?= docker compose
-SERVICE  ?= nuxt
+SERVICE  ?= app
 EXEC     := $(DC) exec $(SERVICE)
 
 # --- cibles ------------------------------------------------
@@ -15,9 +15,6 @@ build:
 
 preview:
 	npm run preview
-
-generate:
-	npm run generate
 
 lint:
 	npm run lint

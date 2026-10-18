@@ -64,6 +64,13 @@ export async function apiTry<T>(url: string, opts: ApiOptions = {}): Promise<{da
         if (e instanceof ApiError) {
             return {data: null, error: e};
         }
-        throw e;
+        // Le garde « navigateur seulement » est une erreur de programmation : on la laisse remonter
+        if (typeof window === 'undefined') {
+            throw e;
+        }
+        // Réseau coupé, JSON invalide… : même forme qu'une erreur d'API, avec le statut 0
+        const error = new ApiError(0, null);
+        error.message = e instanceof Error ? e.message : String(e);
+        return {data: null, error};
     }
 }

@@ -123,9 +123,9 @@ export async function extractWithPandoc(file: Buffer, fromFormat: string): Promi
         // 5. Nettoyage : on supprime les fichiers temporaires
         for (const path of [inPath, mdPath, filterPath, stanzaFilterPath]) {
             try {
-                await unlink(path)
+                await unlink(path);
             } catch (e) {
-                console.warn(`rm ${path}:`, e)
+                console.warn(`rm ${path}:`, e);
             }
         }
     }

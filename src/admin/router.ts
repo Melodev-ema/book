@@ -29,6 +29,7 @@ export function createAdminRouter(): Router {
                     {path: 'import', component: () => import('./views/import/index.vue')},
                     {path: 'import/api', component: () => import('./views/import/api.vue')},
                     {path: 'settings', component: () => import('./views/settings.vue')},
+                    {path: ':pathMatch(.*)*', redirect: ''},
                 ],
             },
         ],

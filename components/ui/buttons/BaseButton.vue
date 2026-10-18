@@ -12,7 +12,7 @@
         @click="$emit('click')"
     >
         <span class="flex items-center">
-            <arrow-path-icon
+            <ArrowPathIcon
                 v-if="loading"
                 class="animate-spin h-5 w-5 mr-2"
                 aria-hidden="true"

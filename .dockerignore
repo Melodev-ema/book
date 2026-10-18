@@ -2,7 +2,7 @@
 *Dockerfile*
 *docker-compose*
 node_modules/
-.nuxt/
+.astro/
 .output/
 .vscode/
 dist/

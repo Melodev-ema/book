@@ -1,6 +1,6 @@
 # Livre
 
-Application Nuxt 3 qui transforme des contenus (poèmes, récits, textes) en livre mis en page, prêt à être exporté en PDF.
+Application Astro (avec Vue) qui transforme des contenus (poèmes, récits, textes) en livre mis en page, prêt à être exporté en PDF.
 
 On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interface d'administration, on configure le livre (titre, dédicace, préface, format de page), puis on génère le PDF. Une page d'accueil publique présente le livre et permet de recevoir un extrait gratuit par email.
 
@@ -16,10 +16,10 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 
 ## Stack
 
-- Nuxt 3, Vue 3, TypeScript, Pinia
-- TailwindCSS, SCSS, @nuxt/ui, Headless UI, Heroicons
+- Astro 7 (rendu serveur, adaptateur Node), Vue 3, TypeScript, Pinia, vue-router
+- TailwindCSS, SCSS, Headless UI, Heroicons
 - PostgreSQL avec Sequelize (migrations via `sequelize-cli`)
-- nuxt-auth-utils (session admin), tokens API en base
+- h3 (API `/api/*`, session admin par cookie scellé), tokens API en base
 - Puppeteer et pdf-lib pour le PDF, Pandoc pour l'extraction de texte
 - Vitest, ESLint, GitHub Actions
 
@@ -33,7 +33,7 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 1. Créer un fichier `.env.local` à la racine (voir [Variables d'environnement](#variables-denvironnement)) :
 
    ```dotenv
-   NUXT_SESSION_PASSWORD=une-chaine-aleatoire-d-au-moins-32-caracteres
+   SESSION_PASSWORD=une-chaine-aleatoire-d-au-moins-32-caracteres
    PDF_API_TOKEN=un-token-secret
    GEMINI_API_KEY=...
    GEMINI_MODEL=gemini-2.5-flash
@@ -47,7 +47,7 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
    make up
    ```
 
-   Le conteneur `nuxt` joue les migrations (`npm run init-db`) puis démarre le serveur de dev.
+   Le conteneur `app` joue les migrations (`npm run init-db`) puis démarre le serveur de dev.
 
 3. Ouvrir :
    - l'application sur http://localhost:3000
@@ -61,7 +61,7 @@ Commandes utiles :
 | `make up` / `make down` | Démarrer / arrêter les conteneurs |
 | `make rebuild` | Reconstruire l'image puis redémarrer |
 | `make logs` | Suivre les logs de l'application |
-| `make shell` | Ouvrir un shell dans le conteneur `nuxt` |
+| `make shell` | Ouvrir un shell dans le conteneur `app` |
 | `make clean` | Tout arrêter et supprimer les volumes (**efface la base**) |
 
 ## Démarrage sans Docker
@@ -70,7 +70,7 @@ Commandes utiles :
 npm ci
 ```
 
-Créer un fichier `.env` avec au minimum les variables `DB_*` pointant vers votre PostgreSQL (par exemple `DB_HOST=localhost`), `NUXT_SESSION_PASSWORD` et `PDF_API_TOKEN`.
+Créer un fichier `.env` avec au minimum les variables `DB_*` pointant vers votre PostgreSQL (par exemple `DB_HOST=localhost`), `SESSION_PASSWORD` et `PDF_API_TOKEN`.
 
 `sequelize-cli` ne lit pas le fichier `.env` : il faut exporter les variables avant de lancer les migrations.
 
@@ -87,8 +87,8 @@ npm run dev
 | Variable | Rôle |
 | --- | --- |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Connexion PostgreSQL. En dev, valeurs par défaut `postgres` / `5432` / `user` / `livre`. Obligatoires en production. |
-| `NUXT_SESSION_PASSWORD` | Clé de chiffrement de la session admin (32 caractères minimum). |
-| `PDF_API_TOKEN` | Secret qui autorise Puppeteer à ouvrir `/book?token=...` pour générer le PDF. En production, il peut être surchargé au runtime par `NUXT_PDF_API_TOKEN`. |
+| `SESSION_PASSWORD` | Clé de chiffrement de la session admin (32 caractères minimum). |
+| `PDF_API_TOKEN` | Secret qui autorise Puppeteer à ouvrir `/book?token=...` pour générer le PDF. |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | IA utilisée pour l'import de fichiers texte (endpoint Gemini compatible OpenAI). Prioritaire si la clé est définie. |
 | `AI_API_URL`, `AI_MODEL` | Sinon, serveur local compatible OpenAI (Ollama par exemple, `AI_API_URL=http://host.docker.internal:11434/`). |
 | `PUPPETEER_EXECUTABLE_PATH` | Chemin vers Chromium. Déjà défini dans l'image Docker ; inutile en local, où Puppeteer utilise son propre Chromium. |
@@ -164,18 +164,21 @@ npm run build
 ```
 
 ```bash
-node .output/server/index.mjs
+node dist/server/entry.mjs
 ```
 
-Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer. Le `Dockerfile` actuel lance le serveur de développement et n'est pas une image de production.
+Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer.
+
+**Attention :** `public/uploads/` (photo de l'auteur, images du livre) n'est pas servi par le serveur Node en production (`dist/client` ne contient que les fichiers présents au build). Il faut le servir depuis le proxy ou un stockage statique. Le `Dockerfile` actuel lance le serveur de développement et n'est pas une image de production.
 
 ## Structure
 
 ```
 components/   Composants Vue (admin, livre, landing, ui, layout)
-pages/        Routes Nuxt : accueil, /poem, /book, /admin/*
-layouts/      Layouts (admin, book, login)
-middleware/   Middleware de routes (auth admin, accès au livre)
+src/pages/    Routes Astro : accueil, /poem, /book, /admin/*, /api/* (transmis à h3)
+src/admin/    Appli Vue de l'admin (vue-router, vues, layouts)
+src/layouts/  Layout Astro de base
+src/middleware.ts  Middleware Astro (accès admin et livre)
 stores/       Stores Pinia
 entities/     Entités et schémas de validation partagés
 server/

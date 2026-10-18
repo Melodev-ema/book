@@ -33,7 +33,7 @@
             </label>
             <p class="text-xs text-atelier-subtle">{{ types }} — {{ maxFiles > 1 ? `${maxFiles} fichiers max., ` : '' }}{{ maxSizeMb }} max. par fichier</p>
         </div>
-        <admin-alert
+        <AdminAlert
             v-if="errors.length > 0"
             title="Certains fichiers n'ont pas été ajoutés"
             severity="danger"
@@ -45,7 +45,7 @@
                     :key="error">{{ error }}
                 </li>
             </ul>
-        </admin-alert>
+        </AdminAlert>
         <ul
             v-if="fileList.length > 0"
             role="list"
@@ -192,7 +192,7 @@ export default defineComponent({
         },
         removeFile(file: FileEntity) {
             const newList = this.fileList.filter(f => f.id !== file.id);
-            this.$emit('update:files', newList)
+            this.$emit('update:files', newList);
 
         },
         addFile(event: Event) {

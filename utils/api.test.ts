@@ -89,4 +89,26 @@ describe('apiTry', () => {
         expect(error).toBeInstanceOf(ApiError);
         expect(error?.status).toBe(500);
     });
+
+    it('wraps a rejected fetch as an ApiError with status 0', async () => {
+        vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+        const {data, error} = await apiTry('/api/x');
+        expect(data).toBeNull();
+        expect(error).toBeInstanceOf(ApiError);
+        expect(error?.status).toBe(0);
+        expect(error?.message).toBe('Failed to fetch');
+        expect(error?.data).toBeNull();
+    });
+
+    it('wraps invalid JSON as an ApiError with status 0', async () => {
+        mockFetch({...jsonResponse(200, null), json: async () => { throw new SyntaxError('Unexpected token'); }});
+        const {data, error} = await apiTry('/api/x');
+        expect(data).toBeNull();
+        expect(error?.status).toBe(0);
+    });
+
+    it('still throws the browser-only guard', async () => {
+        vi.unstubAllGlobals();
+        await expect(apiTry('/api/x')).rejects.toThrow('réservé au navigateur');
+    });
 });

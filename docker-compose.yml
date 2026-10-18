@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 5
 
-  nuxt:
+  app:
     build: .
     #      context: .
     #      dockerfile: Dockerfile
@@ -28,7 +28,7 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.nuxt
+      - /app/.astro
     command: sh -c "npm run init-db && npm run dev"
     ports:
       - "3000:3000"

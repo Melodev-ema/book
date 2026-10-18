@@ -3,10 +3,10 @@ import {verifyToken} from "~/server/services/jwtTokenService";
 
 export default defineEventHandler(async (event) => {
     if (!event.path.startsWith('/api/v1/')) {
-        return
+        return;
     }
 
-    const authHeader = getHeader(event, 'authorization')
+    const authHeader = getHeader(event, 'authorization');
 
-    await verifyToken(authHeader)
-})
+    await verifyToken(authHeader);
+});

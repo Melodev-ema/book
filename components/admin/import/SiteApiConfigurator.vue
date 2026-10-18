@@ -25,7 +25,7 @@
                 Ajouter un token
             </BaseButton>
         </div>
-        <base-table
+        <BaseTable
             :columns="[
                 { name: 'Nom', key: 'name', type: 'input' },
                 { name: 'Token', key: 'token' },
@@ -38,20 +38,20 @@
             empty-label="Aucun token : ajoutez-en un pour connecter un site."
         >
             <template #column-revoked="{row}">
-                <base-badge
+                <BaseBadge
                     v-if="row.revoked"
                     size="sm"
                     severity="danger"
                 >
                     Révoqué
-                </base-badge>
-                <base-badge
+                </BaseBadge>
+                <BaseBadge
                     v-else
                     size="sm"
                     severity="success"
                 >
                     Actif
-                </base-badge>
+                </BaseBadge>
             </template>
             <template #column-actions="{row, index}">
                 <div class="flex justify-end gap-1.5">
@@ -86,7 +86,7 @@
                 </div>
 
             </template>
-        </base-table>
+        </BaseTable>
     </section>
 </template>
 

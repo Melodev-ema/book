@@ -28,7 +28,7 @@ RUN npm ci
 # Copie des sources
 #COPY . .
 
-# Build votre appli Nuxt
+# Build de l'appli
 # RUN npm run build
 
 EXPOSE 3000 4000

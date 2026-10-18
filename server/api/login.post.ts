@@ -21,10 +21,10 @@ export default defineEventHandler(async (event) => {
     });
 
     if (!user) {
-        throw createError({statusCode: 404, statusMessage: 'Utilisateur non trouvé'})
+        throw createError({statusCode: 404, statusMessage: 'Utilisateur non trouvé'});
     }
 
-    const {id, email: userEmail, role, password: hashedPassword} = user.get({plain: true})
+    const {id, email: userEmail, role, password: hashedPassword} = user.get({plain: true});
 
     if (await verifyPassword(hashedPassword, password)) {
         await setUserSession(event, {id, email: userEmail, role});

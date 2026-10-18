@@ -8,14 +8,14 @@ export default defineEventHandler(async (event) => {
 
     //validate with zod
     const postSchema = PostEntity.schema;
-    const result = postSchema.safeParse(body)
+    const result = postSchema.safeParse(body);
 
     if (!result.success) {
         throw createError({
             statusCode: 400,
             statusMessage: 'Requête invalide',
             data: result.error.format()  // structure simple des erreurs
-        })
+        });
     }
 
     const postTitle = sanitizeContent(body.postTitle);
