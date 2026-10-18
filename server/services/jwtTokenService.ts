@@ -1,3 +1,4 @@
+import {createError} from 'h3';
 import ApiToken from "~/server/models/apiToken";
 
 export const verifyToken = async (authHeader: string | undefined) => {

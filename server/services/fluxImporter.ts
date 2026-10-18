@@ -1,3 +1,4 @@
+import {createError} from 'h3';
 import {extract as FeedExtractor} from "@extractus/feed-extractor";
 import {extract as ArticleExtractor} from "@extractus/article-extractor";
 import DOMPurify from "dompurify";
