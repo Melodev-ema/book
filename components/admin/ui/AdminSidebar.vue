@@ -111,7 +111,10 @@ const navigation = computed(() => items.map(item => ({
 })));
 
 const userLogout = async () => {
-    await useSession().clear();
-    await router.push('/login');
+    try {
+        await useSession().clear();
+    } finally {
+        await router.push('/login');
+    }
 };
 </script>
