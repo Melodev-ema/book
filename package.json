@@ -20,6 +20,7 @@
     "eval:view": "npx --yes promptfoo@0.123.1 view"
   },
   "dependencies": {
+    "@adonisjs/hash": "^9.1.1",
     "@extractus/article-extractor": "^8.0.19",
     "@extractus/feed-extractor": "^7.1.6",
     "@headlessui/vue": "^1.7.23",

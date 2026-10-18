@@ -1,6 +1,8 @@
 import {defineEventHandler, createError, readValidatedBody} from 'h3';
 import {z} from 'zod';
 import User, {UserRole} from "~/server/models/user";
+import {verifyPassword} from "~/server/utils/password";
+import {setUserSession} from "~/server/utils/session";
 
 const bodySchema = z.object({
     email: z.string().email(),
@@ -22,10 +24,10 @@ export default defineEventHandler(async (event) => {
         throw createError({statusCode: 404, statusMessage: 'Utilisateur non trouvé'})
     }
 
-    const {password: hashedPassword} = user.get({plain: true})
+    const {id, email: userEmail, role, password: hashedPassword} = user.get({plain: true})
 
     if (await verifyPassword(hashedPassword, password)) {
-        await setUserSession(event, {user});
+        await setUserSession(event, {id, email: userEmail, role});
         return {};
     }
 
