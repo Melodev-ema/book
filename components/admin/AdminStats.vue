@@ -17,5 +17,13 @@
 </template>
 
 <script setup lang="ts">
-const {data: stats} = await useFetch('/api/stats');
+import {onMounted, ref} from 'vue';
+import {apiTry} from '~/utils/api';
+
+const stats = ref<Record<string, {name: string; value: number}> | null>(null);
+
+onMounted(async () => {
+    const {data} = await apiTry<typeof stats.value>('/api/stats');
+    stats.value = data;
+});
 </script>

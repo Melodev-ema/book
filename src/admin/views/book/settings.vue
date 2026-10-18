@@ -1,5 +1,5 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Mon livre</template>
         <template #buttons>
             <BaseButton
@@ -251,22 +251,24 @@
                 </p>
             </aside>
         </div>
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script lang="ts">
+import {defineComponent} from "vue";
 import {ChevronUpDownIcon} from "@heroicons/vue/24/outline";
 import AdminNavTabs from "~/components/admin/ui/AdminNavTabs.vue";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
-import {PAGE_FORMAT_LIMITS, PAGE_FORMAT_SIZES} from "~/stores/bookStore";
+import {PAGE_FORMAT_LIMITS, PAGE_FORMAT_SIZES, type BookConfigState} from "~/stores/bookStore";
+import {apiFetch} from "~/utils/api";
 import {landingTocLimit} from "~/utils/bookToc";
+import {toast} from "~/utils/toast";
 
-export default {
-    components: {AdminNavTabs, BaseButton, ChevronUpDownIcon},
+export default defineComponent({
+    components: {AdminPage, AdminNavTabs, BaseButton, ChevronUpDownIcon},
     data() {
-        const toast = useToast();
         return {
-            toast,
             saving: false,
             labelClass: 'text-[13px] text-atelier-muted',
             fieldClass: 'h-11 w-full rounded-md border border-atelier-line-strong bg-atelier-panel px-3 text-[15px] text-atelier-ink placeholder:text-atelier-subtle focus:border-lilas focus:ring-3 focus:ring-lilas-soft focus:outline-none',
@@ -278,9 +280,9 @@ export default {
                 {id: 'layout', title: 'Format et mise en page', hint: 'Appliqué à l\'aperçu et au PDF.'},
             ],
             tabs: [
-                {name: 'Mon livre', route: '/admin/book', current: false},
-                {name: 'Parties', route: '/admin/book/parts', current: false},
-                {name: 'Configuration', route: '/admin/book/settings', current: true},
+                {name: 'Mon livre', route: '/book', current: false},
+                {name: 'Parties', route: '/book/parts', current: false},
+                {name: 'Configuration', route: '/book/settings', current: true},
             ],
             form: {
                 title: '',
@@ -339,7 +341,7 @@ export default {
     },
     methods: {
         async fetchConfig() {
-            const data = await $fetch('/api/book-config');
+            const data = await apiFetch<BookConfigState>('/api/book-config');
             if (data) {
                 this.form.title = data.title || '';
                 this.form.author = data.author || '';
@@ -362,26 +364,17 @@ export default {
             // Champ vidé ou à 0 : le formulaire affiche la valeur réellement enregistrée
             this.form.landingTocMaxParts = landingTocLimit(this.form.landingTocMaxParts);
             try {
-                await $fetch('/api/book-config', {
+                await apiFetch('/api/book-config', {
                     method: 'PUT',
                     body: this.form,
                 });
-                this.toast.add({
-                    id: 'config-saved',
-                    icon: 'i-heroicons-check-circle',
-                    title: 'Configuration enregistrée avec succès',
-                });
+                toast.success('Configuration enregistrée avec succès');
             } catch {
-                this.toast.add({
-                    id: 'config-error',
-                    icon: 'i-heroicons-x-circle',
-                    title: 'Erreur lors de l\'enregistrement',
-                    color: 'error',
-                });
+                toast.error('Erreur lors de l\'enregistrement');
             } finally {
                 this.saving = false;
             }
         },
     },
-};
+});
 </script>

@@ -1,7 +1,8 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Contenu</template>
-    </NuxtLayout>
+    </AdminPage>
 </template>
 <script setup lang="ts">
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 </script>

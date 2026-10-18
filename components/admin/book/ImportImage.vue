@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from "vue";
+import {defineComponent, type PropType} from "vue";
 import BaseDrawer from "~/components/ui/BaseDrawer.vue";
 import BaseDropzone from "~/components/ui/BaseDropzone.vue";
 import type {FileEntityInterface} from "~/entities/FileEntity";

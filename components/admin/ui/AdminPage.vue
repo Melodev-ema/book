@@ -26,6 +26,5 @@
 </template>
 <script setup lang="ts">
 // Les boutons d'en-tête passent par le slot #buttons de chaque page
-// (l'ancien useState("addUrl") global restait affiché sur toutes les pages).
 import AdminPageHeading from "~/components/admin/ui/AdminPageHeading.vue";
 </script>

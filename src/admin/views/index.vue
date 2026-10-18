@@ -1,11 +1,11 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>
             Bonjour. <em class="italic">Le livre avance.</em>
         </template>
         <template #subtitle>{{ today }}</template>
         <template #buttons>
-            <BaseButton @click="navigateTo('/admin/content/add')">
+            <BaseButton @click="$router.push('/content/add')">
                 <PlusIcon
                     class="mr-2 -ml-1 size-4"
                     aria-hidden="true"/>
@@ -34,7 +34,7 @@
                         v-for="action in actions"
                         :key="action.title"
                     >
-                        <NuxtLink
+                        <RouterLink
                             :to="action.href"
                             class="flex h-full items-center gap-4 rounded-[10px] border border-atelier-line bg-atelier-panel p-5 transition-colors duration-150 hover:border-atelier-line-strong hover:bg-atelier-hover focus-visible:outline-2 focus-visible:outline-lilas"
                         >
@@ -51,17 +51,18 @@
                                 <span class="text-[15px] font-semibold text-atelier-ink">{{ action.title }}</span>
                                 <span class="text-[13px] text-atelier-muted">{{ action.description }}</span>
                             </span>
-                        </NuxtLink>
+                        </RouterLink>
                     </li>
                 </ul>
             </section>
         </div>
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script setup lang="ts">
 import {AdjustmentsHorizontalIcon, ArrowUpTrayIcon, BookOpenIcon, PlusIcon} from '@heroicons/vue/24/outline';
 import AdminStats from "~/components/admin/AdminStats.vue";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 
 const today = new Intl.DateTimeFormat('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'}).format(new Date());
@@ -70,21 +71,21 @@ const actions = [
     {
         title: 'Feuilleter le livre',
         description: 'Couverture, textes, page de fin',
-        href: '/admin/book',
+        href: '/book',
         icon: BookOpenIcon,
         iconClass: 'bg-page text-page-ink',
     },
     {
         title: 'Importer des textes',
         description: 'Fichiers ou API',
-        href: '/admin/import',
+        href: '/import',
         icon: ArrowUpTrayIcon,
         iconClass: 'bg-menthe-soft text-menthe',
     },
     {
         title: 'Configurer le livre',
         description: 'Titre, dédicace, format',
-        href: '/admin/book/settings',
+        href: '/book/settings',
         icon: AdjustmentsHorizontalIcon,
         iconClass: 'bg-lilas-soft text-lilas-light',
     },

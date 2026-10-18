@@ -1,16 +1,16 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Nouveau contenu</template>
         <template #subtitle>
-            <NuxtLink
-                to="/admin/content"
+            <RouterLink
+                to="/content"
                 class="inline-flex items-center gap-1.5 text-atelier-muted hover:text-atelier-ink"
             >
                 <ArrowLeftIcon
                     class="size-4"
                     aria-hidden="true"/>
                 Retour aux contenus
-            </NuxtLink>
+            </RouterLink>
         </template>
         <BaseForm
             @cancel="cancel"
@@ -28,63 +28,44 @@
                 label="Contenu"
             />
         </BaseForm>
-    </NuxtLayout>
+    </AdminPage>
 </template>
 <script lang="ts">
-
+import {defineComponent} from "vue";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseForm from "~/components/ui/form/BaseForm.vue";
 import BaseInput from "~/components/ui/form/BaseInput.vue";
 import PostEntity, {type PostEntityInterface} from "~/entities/PostEntity";
 import TextEditor from "~/components/ui/form/TextEditor.vue";
 import {ArrowLeftIcon} from "@heroicons/vue/24/outline";
+import {apiTry} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
-export default {
-    components: {TextEditor, BaseForm, BaseInput, ArrowLeftIcon},
-    setup() {
-        const toast = useToast();
-        return {
-            toast
-        };
-    },
+export default defineComponent({
+    components: {AdminPage, TextEditor, BaseForm, BaseInput, ArrowLeftIcon},
     data() {
         return {
-            test: '',
             post: PostEntity.create() as PostEntityInterface,
-            token: null,
         };
     },
     methods: {
         async cancel() {
-            await navigateTo('/admin/content');
+            await this.$router.push('/content');
         },
         async submit() {
-            const {error} = await useFetch('/api/post', {
+            const {error} = await apiTry('/api/post', {
                 method: 'POST',
-                body: JSON.stringify(this.post),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                body: this.post,
             });
 
-            if (error.value) {
-                this.toast.add({
-                    id: 'error',
-                    icon: 'i-material-symbols-file-download-off',
-                    title: 'Erreur lors de la création du contenu',
-                    color: 'error',
-
-                });
+            if (error) {
+                toast.error('Erreur lors de la création du contenu');
                 return;
             }
 
-            this.toast.add({
-                id: 'success',
-                icon: 'i-material-symbols-file-download-off',
-                title: 'Contenu créé avec succès',
-            });
-            navigateTo('/admin/content');
+            toast.success('Contenu créé avec succès');
+            await this.$router.push('/content');
         }
     }
-};
-
+});
 </script>

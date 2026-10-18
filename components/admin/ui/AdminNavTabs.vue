@@ -19,34 +19,36 @@
         <nav
             class="hidden gap-6 border-b border-atelier-line sm:flex"
             aria-label="Onglets">
-            <NuxtLink
+            <RouterLink
                 v-for="tab in tabs"
                 :key="tab.name"
                 :to="tab.route"
                 class="flex h-11 items-center text-sm font-semibold whitespace-nowrap transition-colors duration-150"
                 :class="tab.current ? 'text-atelier-ink shadow-[inset_0_-2px_0_var(--color-lilas)]' : 'text-atelier-muted hover:text-atelier-ink'"
                 :aria-current="tab.current ? 'page' : undefined">{{ tab.name.trim() }}
-            </NuxtLink>
+            </RouterLink>
         </nav>
     </div>
 </template>
 
 <script lang="ts">
+import {defineComponent, type PropType} from 'vue';
+import {RouterLink} from 'vue-router';
 import {ChevronDownIcon} from '@heroicons/vue/24/outline';
 import type {Tab} from "~/components/admin/ui/Tab";
 
-export default {
-    components: {ChevronDownIcon},
+export default defineComponent({
+    components: {ChevronDownIcon, RouterLink},
     props: {
         tabs: {
-            type: Array<Tab>,
+            type: Array as PropType<Tab[]>,
             default: () => [],
         },
     },
     methods: {
         onSelect(event: Event) {
-            navigateTo((event.target as HTMLSelectElement).value);
+            this.$router.push((event.target as HTMLSelectElement).value);
         },
     },
-};
+});
 </script>

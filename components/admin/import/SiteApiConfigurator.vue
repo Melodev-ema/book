@@ -97,13 +97,14 @@ import BaseTable from "~/components/ui/BaseTable.vue";
 import {PlusIcon} from "@heroicons/vue/24/outline";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import BaseBadge from "~/components/ui/buttons/BaseBadge.vue";
+import {apiFetch, apiTry} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
 export default defineComponent({
     name: "SiteApiConfigurator",
     components: {BaseBadge, BaseButton, BaseTable, PlusIcon},
     data() {
         return {
-            toast: useToast(),
             tokens: [] as ApiTokenEntityInterface[],
             editingTokenIds: [] as number[],
         };
@@ -127,66 +128,40 @@ export default defineComponent({
     methods: {
         async getTokens() {
             try {
-                this.tokens = await $fetch<ApiTokenEntityInterface[]>('/api/config/api-token') || [];
+                this.tokens = await apiFetch<ApiTokenEntityInterface[]>('/api/config/api-token') || [];
             } catch {
-                this.toast.add({
-                    id: 'error',
-                    color: 'error',
-                    title: 'Erreur lors de la récupération des tokens',
-                });
+                toast.error('Erreur lors de la récupération des tokens');
             }
         },
         async revokeToken(token: ApiTokenEntityInterface) {
-            const {data, error} = await useFetch('/api/config/api-token', {
+            const {data: tokenUpdated, error} = await apiTry<ApiTokenEntityInterface>('/api/config/api-token', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    id: token.id,
-                }),
+                body: {id: token.id},
             });
 
-            if (error.value || !data.value) {
-                this.toast.add({
-                    id: 'error',
-                    color: 'error',
-                    title: 'Erreur lors de la suppression du token',
-                });
+            if (error || !tokenUpdated) {
+                toast.error('Erreur lors de la suppression du token');
                 return;
             }
-            const tokenUpdated = data.value as ApiTokenEntityInterface;
             this.tokens = this.tokens.filter(token => token.id !== tokenUpdated.id);
         },
         async saveToken(token: ApiTokenEntityInterface, index: number) {
             const method = token.id === '' ? 'POST' : 'PUT';
-            const {data, error} = await useFetch('/api/config/api-token', {
+            const {data: tokenUpdated, error} = await apiTry<ApiTokenEntityInterface>('/api/config/api-token', {
                 method: method,
-                body: JSON.stringify(token),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                body: token,
             });
 
-            if (error.value) {
-                this.toast.add({
-                    id: 'error',
-                    color: 'error',
-                    title: 'Erreur lors de la modification du token',
-                });
+            if (error || !tokenUpdated) {
+                toast.error('Erreur lors de la modification du token');
                 return;
             }
-            const tokenUpdated = data.value as ApiTokenEntityInterface;
             const findIndex = this.tokens.findIndex(token => token.id === tokenUpdated.id || token.id === '');
 
             this.tokens[findIndex] = tokenUpdated;
             this.editingTokenIds = this.editingTokenIds.filter(id => id !== index);
 
-            this.toast.add({
-                id: 'success',
-                icon: 'i-material-symbols-file-download',
-                title: 'Le token a été modifié avec succès',
-            });
+            toast.success('Le token a été modifié avec succès');
         },
         editToken(index: number) {
             this.editingTokenIds.push(index);

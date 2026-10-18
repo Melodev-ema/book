@@ -1,5 +1,5 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Configuration</template>
         <template #buttons>
             <BaseButton
@@ -164,16 +164,20 @@
             @submit="savePortrait"
             @close="showPortraitDrawer = false"
         />
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script lang="ts">
+import {defineComponent} from "vue";
 import {UserIcon} from "@heroicons/vue/24/outline";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import ImportImage from "~/components/admin/book/ImportImage.vue";
 import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import type {FileEntityInterface} from "~/entities/FileEntity";
+import {apiFetch} from "~/utils/api";
 import {landingContent, type LandingContent} from "~/utils/landingContent";
+import {toast} from "~/utils/toast";
 
 function toForm(content: LandingContent) {
     return {
@@ -190,12 +194,10 @@ function toForm(content: LandingContent) {
     };
 }
 
-export default {
-    components: {BaseButton, ImportImage, UserIcon},
+export default defineComponent({
+    components: {AdminPage, BaseButton, ImportImage, UserIcon},
     data() {
-        const toast = useToast();
         return {
-            toast,
             saving: false,
             showPortraitDrawer: false,
             portraitUrl: null as string | null,
@@ -223,7 +225,7 @@ export default {
     },
     methods: {
         async fetchConfig() {
-            const data = await $fetch<LandingContent>('/api/site-config');
+            const data = await apiFetch<LandingContent>('/api/site-config');
             if (data) {
                 this.form = toForm(data);
                 this.portraitUrl = data.author.portraitUrl;
@@ -247,24 +249,15 @@ export default {
         async save() {
             this.saving = true;
             try {
-                const data = await $fetch<LandingContent>('/api/site-config', {
+                const data = await apiFetch<LandingContent>('/api/site-config', {
                     method: 'PUT',
                     body: this.toPayload(),
                 });
                 this.form = toForm(data);
                 this.portraitUrl = data.author.portraitUrl;
-                this.toast.add({
-                    id: 'site-config-saved',
-                    icon: 'i-heroicons-check-circle',
-                    title: 'Configuration enregistrée avec succès',
-                });
+                toast.success('Configuration enregistrée avec succès');
             } catch {
-                this.toast.add({
-                    id: 'site-config-error',
-                    icon: 'i-heroicons-x-circle',
-                    title: 'Erreur lors de l\'enregistrement',
-                    color: 'error',
-                });
+                toast.error('Erreur lors de l\'enregistrement');
             } finally {
                 this.saving = false;
             }
@@ -277,26 +270,17 @@ export default {
             const formData = new FormData();
             formData.append('file', file, file.name);
             try {
-                const data = await $fetch<LandingContent>('/api/site-portrait', {
+                const data = await apiFetch<LandingContent>('/api/site-portrait', {
                     method: 'POST',
                     body: formData,
                 });
                 this.portraitUrl = data.author.portraitUrl;
                 this.showPortraitDrawer = false;
-                this.toast.add({
-                    id: 'portrait-saved',
-                    icon: 'i-heroicons-check-circle',
-                    title: 'La photo a été enregistrée',
-                });
+                toast.success('La photo a été enregistrée');
             } catch {
-                this.toast.add({
-                    id: 'portrait-error',
-                    icon: 'i-heroicons-x-circle',
-                    title: 'Erreur lors de l\'enregistrement de la photo',
-                    color: 'error',
-                });
+                toast.error('Erreur lors de l\'enregistrement de la photo');
             }
         },
     },
-};
+});
 </script>

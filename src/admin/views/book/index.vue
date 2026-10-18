@@ -1,5 +1,5 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Mon livre</template>
         <template #actions>
             <AdminNavTabs :tabs="tabs"/>
@@ -65,11 +65,11 @@
             @submit="saveFiles"
             @close="showModalPage = false"
         />
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script lang="ts">
-
+import {defineComponent} from "vue";
 import PostEntity, {type PostEntityInterface} from "~/entities/PostEntity";
 import BaseBook from "~/components/poems/BaseBook.vue";
 import type {PostInterface} from "~/server/models/post";
@@ -79,9 +79,13 @@ import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import EditRoundButton from "~/components/ui/buttons/EditRoundButton.vue";
 import ImportImage from "~/components/admin/book/ImportImage.vue";
 import AdminNavTabs from "~/components/admin/ui/AdminNavTabs.vue";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
+import {apiFetch, apiTry} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
-export default {
+export default defineComponent({
     components: {
+        AdminPage,
         AdminNavTabs,
         ImportImage,
         EditRoundButton,
@@ -90,13 +94,11 @@ export default {
         PlusIcon
     },
     data() {
-        const toast = useToast();
         return {
-            toast,
             tabs: [
-                {name: 'Mon livre', route: '/admin/book', current: true},
-                {name: 'Parties', route: '/admin/book/parts', current: false},
-                {name: 'Configuration', route: '/admin/book/settings', current: false},
+                {name: 'Mon livre', route: '/book', current: true},
+                {name: 'Parties', route: '/book/parts', current: false},
+                {name: 'Configuration', route: '/book/settings', current: false},
             ],
             images: [] as AttachmentEntityInterface[],
             posts: [] as PostEntityInterface[],
@@ -150,11 +152,11 @@ export default {
                 });
         },
         async getImages() {
-            const {data, error} = await useFetch(`/api/image`);
-            if (error.value || !data.value) {
+            const {data, error} = await apiTry<AttachmentEntityInterface[]>('/api/image');
+            if (error || !data) {
                 return;
             }
-            this.images = data.value as AttachmentEntityInterface[];
+            this.images = data;
         },
         openModalPage(type: string) {
             this.showModalPage = true;
@@ -169,30 +171,21 @@ export default {
             const formData = new FormData();
             formData.append('file', file, file.name);
             formData.append('data', pageType);
-            $fetch('/api/import/image', {
+            apiFetch<AttachmentEntityInterface[]>('/api/import/image', {
                 method: 'POST',
                 body: formData
             })
                 .then(data => {
-                    this.images = data as AttachmentEntityInterface[];
+                    this.images = data;
 
-                    this.toast.add({
-                        id: 'success',
-                        icon: 'i-material-symbols-file-download',
-                        title: 'L\'image a été enregistrée avec succès',
-                    });
+                    toast.success('L\'image a été enregistrée avec succès');
                 })
                 .catch(() => {
-                    this.toast.add({
-                        id: 'error',
-                        icon: 'i-material-symbols-file-download-off',
-                        title: 'Erreur lors de l\'enregistrement de l\'image',
-                        color: 'error'
-                    });
+                    toast.error('Erreur lors de l\'enregistrement de l\'image');
                 });
 
         },
     }
-};
+});
 
 </script>

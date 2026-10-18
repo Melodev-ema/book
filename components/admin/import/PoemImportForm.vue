@@ -147,13 +147,15 @@
 </template>
 
 <script lang="ts">
-
+import {defineComponent} from "vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import BaseDropzone from "~/components/ui/BaseDropzone.vue";
 import type {FileEntity} from "~/entities/FileEntity";
 import CancelButton from "~/components/ui/buttons/CancelRoundButton.vue";
 import {ClockIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon} from "@heroicons/vue/24/outline";
 import type {ImportJob} from "~/server/services/importQueue";
+import {apiFetch} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
 export default defineComponent({
     name: "PoemImportForm",
@@ -165,12 +167,6 @@ export default defineComponent({
         CheckCircleIcon,
         ExclamationCircleIcon,
         ArrowPathIcon
-    },
-    setup() {
-        const toast = useToast();
-        return {
-            toast
-        };
     },
     data() {
         return {
@@ -235,7 +231,7 @@ export default defineComponent({
             this.files = [];
 
             try {
-                const response = await $fetch<{ jobs: ImportJob[] }>('/api/import/queue', {
+                const response = await apiFetch<{ jobs: ImportJob[] }>('/api/import/queue', {
                     method: 'POST',
                     body: formData,
                 });
@@ -243,11 +239,7 @@ export default defineComponent({
                 this.queue = response.jobs;
                 this.startPolling();
             } catch {
-                this.toast.add({
-                    id: 'import-error',
-                    title: 'Erreur lors de la soumission des fichiers',
-                    color: 'error',
-                });
+                toast.error('Erreur lors de la soumission des fichiers');
             } finally {
                 this.submitting = false;
             }
@@ -264,18 +256,19 @@ export default defineComponent({
         },
         async fetchJobs() {
             try {
-                const response = await $fetch<{ jobs: ImportJob[] }>('/api/import/queue');
+                const response = await apiFetch<{ jobs: ImportJob[] }>('/api/import/queue');
                 this.queue = response.jobs;
 
                 if (this.allDone && this.queue.length > 0) {
                     this.stopPolling();
                     if (!this.toastShown) {
                         this.toastShown = true;
-                        this.toast.add({
-                            id: 'import-done',
-                            title: `Import terminé — ${this.totalSuccess} contenu${this.totalSuccess > 1 ? 's' : ''} importé${this.totalSuccess > 1 ? 's' : ''}`,
-                            color: this.hasErrors ? 'warning' : 'success',
-                        });
+                        const title = `Import terminé — ${this.totalSuccess} contenu${this.totalSuccess > 1 ? 's' : ''} importé${this.totalSuccess > 1 ? 's' : ''}`;
+                        if (this.hasErrors) {
+                            toast.warning(title);
+                        } else {
+                            toast.success(title);
+                        }
                     }
                 }
             } catch {

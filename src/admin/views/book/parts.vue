@@ -1,5 +1,5 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Mon livre</template>
         <template #actions>
             <AdminNavTabs :tabs="tabs"/>
@@ -265,25 +265,27 @@
                 </form>
             </div>
         </section>
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script setup lang="ts">
+import {computed, onMounted, ref} from "vue";
 import {ArrowDownIcon, ArrowUpIcon, Bars2Icon, ChevronRightIcon, ChevronUpDownIcon, PlusIcon, TrashIcon} from "@heroicons/vue/24/outline";
 import AdminNavTabs from "~/components/admin/ui/AdminNavTabs.vue";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import PostEntity from "~/entities/PostEntity";
 import type {PostInterface} from "~/server/models/post";
 import type {PartInterface} from "~/server/models/part";
 import {groupByPart, sortByPosition} from "~/utils/bookToc";
+import {apiFetch} from "~/utils/api";
 import {isCollapsed} from "~/utils/partsCollapse";
-
-const toast = useToast();
+import {toast} from "~/utils/toast";
 
 const tabs = [
-    {name: 'Mon livre', route: '/admin/book', current: false},
-    {name: 'Parties', route: '/admin/book/parts', current: true},
-    {name: 'Configuration', route: '/admin/book/settings', current: false},
+    {name: 'Mon livre', route: '/book', current: false},
+    {name: 'Parties', route: '/book/parts', current: true},
+    {name: 'Configuration', route: '/book/settings', current: false},
 ];
 
 const fieldClass = 'h-11 w-full rounded-md border border-atelier-line-strong bg-atelier-panel px-3 text-[15px] text-atelier-ink placeholder:text-atelier-subtle focus:border-lilas focus:ring-3 focus:ring-lilas-soft focus:outline-none';
@@ -476,12 +478,12 @@ const setParts = (list: PartInterface[]) => {
     titles.value = Object.fromEntries(list.map(part => [part.id, part.title]));
 };
 
-const notifyError = (title: string) => toast.add({id: 'parts-error', title, color: 'error', icon: 'i-heroicons-x-circle'});
+const notifyError = (title: string) => toast.error(title, {id: 'parts-error'});
 
 const load = async () => {
     const [partList, data] = await Promise.all([
-        $fetch<PartInterface[]>('/api/part'),
-        $fetch<{ rows: PostInterface[] }>('/api/post', {query: {limit: 'all'}}),
+        apiFetch<PartInterface[]>('/api/part'),
+        apiFetch<{ rows: PostInterface[] }>('/api/post', {query: {limit: 'all'}}),
     ]);
     setParts(partList);
     posts.value = data.rows.map(post => PostEntity.hydrateFromDatabase(post));
@@ -496,7 +498,7 @@ const create = async () => {
     }
     creating.value = true;
     try {
-        const part = await $fetch<PartInterface>('/api/part', {method: 'POST', body: {title}});
+        const part = await apiFetch<PartInterface>('/api/part', {method: 'POST', body: {title}});
         setParts([...parts.value, part]);
         settleCollapsed();
         newTitle.value = '';
@@ -517,9 +519,9 @@ const rename = async (part: PartInterface) => {
         return;
     }
     try {
-        await $fetch(`/api/part/${part.id}`, {method: 'PUT', body: {title}});
+        await apiFetch(`/api/part/${part.id}`, {method: 'PUT', body: {title}});
         part.title = title;
-        toast.add({id: 'part-renamed', title: 'Partie renommée', icon: 'i-heroicons-check-circle'});
+        toast.success('Partie renommée', {id: 'part-renamed'});
     } catch {
         titles.value[part.id] = part.title;
         notifyError('Erreur lors du renommage de la partie');
@@ -536,7 +538,7 @@ const move = async (index: number, offset: number) => {
     const previous = parts.value;
     parts.value = reordered;
     try {
-        setParts(await $fetch<PartInterface[]>('/api/part/order', {method: 'PUT', body: {ids: reordered.map(part => part.id)}}));
+        setParts(await apiFetch<PartInterface[]>('/api/part/order', {method: 'PUT', body: {ids: reordered.map(part => part.id)}}));
     } catch {
         parts.value = previous;
         notifyError('Erreur lors du déplacement de la partie');
@@ -545,7 +547,7 @@ const move = async (index: number, offset: number) => {
 
 const remove = async (part: PartInterface) => {
     try {
-        await $fetch(`/api/part/${part.id}`, {method: 'DELETE'});
+        await apiFetch(`/api/part/${part.id}`, {method: 'DELETE'});
     } catch {
         notifyError('Erreur lors de la suppression de la partie');
         return;
@@ -556,23 +558,19 @@ const remove = async (part: PartInterface) => {
             post.partId = null;
         }
     }
-    toast.add({id: 'part-deleted', title: 'Partie supprimée', icon: 'i-heroicons-check-circle'});
+    toast.success('Partie supprimée', {id: 'part-deleted'});
 };
 
 const confirmRemove = (part: PartInterface) => {
     const count = countByPart.value[part.id] ?? 0;
-    toast.add({
+    toast.error('Supprimer la partie ?', {
         id: 'part-delete',
-        title: 'Supprimer la partie ?',
         description: count
             ? `« ${part.title} » sera supprimée. Ses ${count} texte${count > 1 ? 's' : ''} resteront dans le livre, sans partie.`
             : `« ${part.title} » sera supprimée.`,
-        color: 'error',
-        duration: 0,
-        actions: [
-            {label: 'Supprimer', color: 'error', onClick: () => remove(part)},
-            {label: 'Annuler', color: 'neutral', variant: 'ghost'},
-        ],
+        duration: Infinity,
+        action: {label: 'Supprimer', onClick: () => remove(part)},
+        cancel: {label: 'Annuler', onClick: () => {}},
     });
 };
 
@@ -599,7 +597,7 @@ const place = async (post: PostEntity, part: PartInterface | null, index: number
         item.position = position;
     });
     try {
-        await $fetch('/api/post/order', {method: 'PUT', body: {partId: post.partId, ids: ordered.map(item => item.id)}});
+        await apiFetch('/api/post/order', {method: 'PUT', body: {partId: post.partId, ids: ordered.map(item => item.id)}});
     } catch {
         for (const {item, partId, position} of previous) {
             item.partId = partId;

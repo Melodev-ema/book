@@ -38,6 +38,7 @@
 </template>
 
 <script lang="ts">
+import type {PropType} from "vue";
 
 interface Row {
     [key: string]: string;

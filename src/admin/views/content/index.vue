@@ -1,11 +1,11 @@
 <template>
-    <NuxtLayout name="admin-page">
+    <AdminPage>
         <template #title>Contenus</template>
         <template #subtitle>
             {{ totalRecords }} texte{{ totalRecords > 1 ? 's' : '' }} dans le livre
         </template>
         <template #buttons>
-            <BaseButton @click="navigateTo('/admin/content/add')">
+            <BaseButton @click="$router.push('/content/add')">
                 <PlusIcon
                     class="mr-2 -ml-1 size-4"
                     aria-hidden="true"/>
@@ -19,12 +19,12 @@
             @action="doAction"
         >
             <template #column-postTitle="{row}">
-                <NuxtLink
-                    :to="`/admin/content/${row.id}/edit`"
+                <RouterLink
+                    :to="`/content/${row.id}/edit`"
                     class="font-newsreader text-[17px] text-atelier-ink hover:text-lilas-light"
                 >
                     {{ row.postTitle }}
-                </NuxtLink>
+                </RouterLink>
             </template>
         </BaseTable>
         <BasePagination
@@ -36,25 +36,24 @@
             @next-page="nextPage"
             @page="setPage"
         />
-    </NuxtLayout>
+    </AdminPage>
 </template>
 
 <script lang="ts">
+import {defineComponent} from "vue";
 import {PlusIcon} from "@heroicons/vue/24/outline";
+import AdminPage from "~/components/admin/ui/AdminPage.vue";
+import BasePagination from "~/components/BasePagination.vue";
 import BaseTable from "~/components/ui/BaseTable.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import type {PostInterface} from "~/server/models/post";
 import PostEntity from "~/entities/PostEntity";
 import type {PostEntityInterface} from "~/entities/PostEntity";
+import {apiFetch} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
-export default {
-    components: {BaseTable, BaseButton, PlusIcon},
-    setup() {
-        const toast = useToast();
-        return {
-            toast
-        };
-    },
+export default defineComponent({
+    components: {AdminPage, BasePagination, BaseTable, BaseButton, PlusIcon},
     data() {
         return {
             columns: [
@@ -64,7 +63,7 @@ export default {
                 {name: '', key: 'actions', type: 'actions'},
             ],
             token: null,
-            posts: [],
+            posts: [] as (PostEntityInterface & {actions: unknown[]})[],
             loaded: false,
             count: 1,
             page: 1,
@@ -76,7 +75,7 @@ export default {
         };
     },
     computed: {
-        countPage() {
+        countPage(): number {
             if (this.totalRecords === 0) {
                 return 0;
             }
@@ -111,7 +110,7 @@ export default {
                                 title: 'Modifier',
                                 type: 'link',
                                 actionType: 'edit',
-                                action: `/admin/content/${postEntity.id}/edit`,
+                                action: `/content/${postEntity.id}/edit`,
                             },
                             {
                                 title: 'Supprimer',
@@ -130,35 +129,24 @@ export default {
         },
         async doAction({action, row}: {action: string, row: PostEntityInterface}) {
             if (action === 'delete') {
-                this.toast.add({
+                toast.error('Confirmation de suppression', {
                     id: 'delete',
-                    title: 'Confirmation de suppression',
                     description: `Supprimer « ${row.postTitle} » ? Cette action est définitive.`,
-                    color: 'error',
-                    duration: 0,
-                    actions: [
-                        {label: 'Supprimer', color: 'error', onClick: () => this.deletePost(row)},
-                        {label: 'Annuler', color: 'neutral', variant: 'ghost'},
-                    ],
+                    duration: Infinity,
+                    action: {label: 'Supprimer', onClick: () => this.deletePost(row)},
+                    cancel: {label: 'Annuler', onClick: () => {}},
                 });
             }
         },
         async deletePost(post: PostEntityInterface) {
             try {
-                await $fetch(`/api/post/${post.id}`, {method: 'DELETE'});
+                await apiFetch(`/api/post/${post.id}`, {method: 'DELETE'});
             } catch {
-                this.toast.add({
-                    id: 'error',
-                    title: 'Erreur lors de la suppression du contenu',
-                    color: 'error',
-                });
+                toast.error('Erreur lors de la suppression du contenu');
                 return;
             }
 
-            this.toast.add({
-                id: 'success',
-                title: 'Contenu supprimé avec succès',
-            });
+            toast.success('Contenu supprimé avec succès');
             // Si on vient de vider la dernière page, on revient à la précédente
             if (this.posts.length === 1 && this.page > 1) {
                 this.page--;
@@ -167,5 +155,5 @@ export default {
         },
 
     }
-};
+});
 </script>

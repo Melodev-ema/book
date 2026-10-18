@@ -76,10 +76,12 @@
 </template>
 
 <script lang="ts">
+import {defineComponent, ref, watch} from 'vue';
 import {useDropZone} from '@vueuse/core';
 import {TrashIcon, DocumentIcon, ArrowUpTrayIcon} from "@heroicons/vue/24/outline";
 import {FileEntity} from "~/entities/FileEntity";
 import AdminAlert from "~/components/admin/ui/AdminAlert.vue";
+import {toast} from "~/utils/toast";
 
 export default defineComponent({
     name: "BaseDropzone",
@@ -110,7 +112,6 @@ export default defineComponent({
     setup(props) {
         const dropZoneRef = ref<HTMLElement | null>(null);
         const fileList = ref<FileEntity[]>(props.files);
-        const toast = useToast();
         const fileInputRef = ref<HTMLInputElement | null>(null);
         const errors = ref<string[]>([]);
 
@@ -130,12 +131,7 @@ export default defineComponent({
             if (files) {
                 files.forEach(file => {
                     if (fileList.value.length >= props.maxFiles) {
-                        toast.add({
-                            id: 'error',
-                            title: 'Erreur lors du téléchargement du fichier',
-                            color: 'error',
-                            icon: 'i-material-symbols-file-download-off',
-                        });
+                        toast.error('Erreur lors du téléchargement du fichier');
                         return;
                     }
                     if (file.size > props.maxSize) {

@@ -17,6 +17,7 @@
 </template>
 <script lang="ts">
 
+import {defineComponent} from "vue";
 import ApiConnectorsConfigurator from "~/components/admin/import/ApiConnectorsConfigurator.vue";
 import SiteApiConfigurator from "~/components/admin/import/SiteApiConfigurator.vue";
 
