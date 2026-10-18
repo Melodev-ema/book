@@ -1,7 +1,7 @@
 import {defineEventHandler, createError, readMultipartFormData} from 'h3';
 import {requireUserSession} from '~/server/utils/session';
 import {createJob, processJob} from "~/server/services/importQueue";
-import {randomUUID} from "uncrypto";
+import {randomUUID} from "node:crypto";
 
 export default defineEventHandler(async (event) => {
     await requireUserSession(event);

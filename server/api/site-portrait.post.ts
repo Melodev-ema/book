@@ -1,7 +1,7 @@
 import {defineEventHandler, createError, readMultipartFormData} from 'h3';
 import {requireUserSession} from '~/server/utils/session';
 import fs from 'fs/promises';
-import {join} from 'pathe';
+import {join} from 'node:path';
 import SiteConfig from "~/server/models/siteConfig";
 import {mergeLandingContent} from "~/utils/landingContent";
 
