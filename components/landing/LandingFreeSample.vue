@@ -97,7 +97,10 @@
 import ArrowPathIcon from "@heroicons/vue/24/outline/ArrowPathIcon";
 import CheckIcon from "@heroicons/vue/24/outline/CheckIcon";
 import PaperAirplaneIcon from "@heroicons/vue/24/outline/PaperAirplaneIcon";
+import {ref} from "vue";
 import BookSpread from "~/components/landing/BookSpread.vue";
+import {apiFetch} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
 defineProps<{
     number: string;
@@ -110,7 +113,6 @@ defineProps<{
 
 type Status = 'idle' | 'invalid' | 'loading' | 'success' | 'error';
 
-const toast = useToast();
 const email = ref('');
 const status = ref<Status>('idle');
 
@@ -124,24 +126,15 @@ const submit = async () => {
 
     status.value = 'loading';
     try {
-        await $fetch('/api/prospect', {
+        await apiFetch('/api/prospect', {
             method: 'POST',
             body: {email: email.value},
         });
         status.value = 'success';
-        toast.add({
-            id: 'free-sample-success',
-            icon: 'i-heroicons-paper-airplane',
-            title: 'Votre extrait a été envoyé avec succès',
-        });
+        toast.success('Votre extrait a été envoyé avec succès');
     } catch {
         status.value = 'error';
-        toast.add({
-            id: 'free-sample-error',
-            icon: 'i-heroicons-exclamation-triangle',
-            title: 'Une erreur est survenue',
-            color: 'error',
-        });
+        toast.error('Une erreur est survenue');
     }
 };
 </script>

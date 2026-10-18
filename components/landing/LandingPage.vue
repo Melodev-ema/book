@@ -3,6 +3,7 @@
         <LandingNav
             :title="bookTitle"
             :sections="sections"
+            current-path="/"
         />
         <main>
             <LandingHero
@@ -60,8 +61,10 @@
 </template>
 
 <script setup lang="ts">
+import {computed} from "vue";
 import {useBookStore} from "~/stores/bookStore";
-import {landingContent, type LandingContent, type LandingToc, type LandingTocPart} from "~/utils/landingContent";
+import type {LandingData} from "~/server/services/landingData";
+import {landingContent, type LandingContent, type LandingTocPart} from "~/utils/landingContent";
 import LandingNav from "~/components/landing/LandingNav.vue";
 import LandingHero from "~/components/landing/LandingHero.vue";
 import LandingTestimonial from "~/components/landing/LandingTestimonial.vue";
@@ -71,23 +74,18 @@ import Author from "~/components/landing/Author.vue";
 import BookPricing from "~/components/landing/BookPricing.vue";
 import LandingFooter from "~/components/landing/LandingFooter.vue";
 
-const bookStore = useBookStore();
+const props = defineProps<{data: LandingData}>();
 
-bookStore.fetchImagePages();
-const [, {data: siteContent}] = await Promise.all([
-    useAsyncData('landing-book-config', async () => {
-        await bookStore.fetchConfig();
-        return true;
-    }),
-    useAsyncData('landing-site-config', () => $fetch<LandingContent>('/api/site-config')),
-]);
-const content = computed<LandingContent>(() => siteContent.value ?? landingContent);
+// Avant tout rendu, sur le serveur comme dans le navigateur
+const bookStore = useBookStore();
+bookStore.hydrate({config: props.data.bookConfig, imagePages: props.data.imagePages});
+
+const content = computed<LandingContent>(() => props.data.siteConfig ?? landingContent);
 
 // Sommaire : les premières parties du livre (titres et numéros) et le nombre des autres, calculés par le serveur
-const {data: toc} = await useAsyncData('landing-toc', () => $fetch<LandingToc>('/api/book-toc'));
 // Sans partie, la section est masquée
-const tocParts = computed<LandingTocPart[]>(() => toc.value?.parts ?? []);
-const tocHiddenCount = computed(() => toc.value?.hiddenCount ?? 0);
+const tocParts = computed<LandingTocPart[]>(() => props.data.toc?.parts ?? []);
+const tocHiddenCount = computed(() => props.data.toc?.hiddenCount ?? 0);
 
 const bookTitle = computed(() => bookStore.config.title || 'Le livre');
 const bookAuthor = computed(() => bookStore.config.author || '');
@@ -104,12 +102,4 @@ const sections = computed(() => [
 // Numéros « 01 », « 02 »… : ils suivent les sections affichées (le sommaire peut être masqué)
 const sectionNumber = (id: string) =>
     String(sections.value.findIndex(section => section.id === id) + 1).padStart(2, '0');
-
-useHead({
-    title: () => bookAuthor.value ? `${bookTitle.value} — ${bookAuthor.value}` : bookTitle.value,
-    htmlAttrs: {lang: 'fr'},
-    meta: [
-        {name: 'description', content: () => content.value.pitch},
-    ],
-});
 </script>

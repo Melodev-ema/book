@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import LandingPage from '../../components/landing/LandingPage.vue';
+import {loadLandingData} from '~/server/services/landingData';
+
+const data = await loadLandingData();
+const bookTitle = data.bookConfig.title || 'Le livre';
+const bookAuthor = data.bookConfig.author || '';
+const title = bookAuthor ? `${bookTitle} — ${bookAuthor}` : bookTitle;
+---
+<BaseLayout title={title} description={data.siteConfig.pitch}>
+    <LandingPage data={data} client:load/>
+</BaseLayout>

@@ -57,11 +57,23 @@
 </template>
 
 <script setup lang="ts">
+import {onBeforeUnmount, onMounted, ref} from "vue";
+
 defineProps<{
     title: string;
     sections: { id: string; label: string }[];
+    // Chemin de la page (le fragment, lui, n'existe que dans le navigateur)
+    currentPath: string;
 }>();
 
-const route = useRoute();
-const activeId = computed(() => route.hash.slice(1));
+const activeId = ref('');
+const readHash = () => {
+    activeId.value = window.location.hash.slice(1);
+};
+
+onMounted(() => {
+    readHash();
+    window.addEventListener('hashchange', readHash);
+});
+onBeforeUnmount(() => window.removeEventListener('hashchange', readHash));
 </script>
