@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "astro dev --host 0.0.0.0 --port 3000",
     "build": "astro build",
-    "start": "HOST=0.0.0.0 PORT=3000 node dist/server/entry.mjs",
+    "start": "NODE_ENV=production HOST=0.0.0.0 PORT=3000 node dist/server/entry.mjs",
     "preview": "astro preview --port 3000",
     "init-db": "sequelize-cli db:migrate",
     "create-migration": "sequelize-cli migration:generate --name",
+    "check": "astro check",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
