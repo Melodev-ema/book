@@ -2,10 +2,16 @@ import puppeteer from 'puppeteer';
 import {PDFDocument} from 'pdf-lib';
 import {bookRenderProblem} from './bookRenderCheck';
 
-// excerpt : n'imprime que les premiers textes du livre (l'extrait gratuit)
-export async function generatePdfFromEvent(token: string, protocol: string, host: string, {excerpt = false} = {}) {
+// Le navigateur headless tourne à côté du serveur : il l'appelle en local, jamais par l'adresse
+// publique (derrière un proxy comme Traefik, livre.localhost:80 n'existe pas dans le conteneur)
+function internalBaseUrl() {
+    return `http://127.0.0.1:${process.env.PORT || 3000}`;
+}
 
-    const url = `${protocol}://${host}/book?token=${token}${excerpt ? '&extrait=1' : ''}`;
+// excerpt : n'imprime que les premiers textes du livre (l'extrait gratuit)
+export async function generatePdfFromEvent(token: string, {excerpt = false} = {}) {
+
+    const url = `${internalBaseUrl()}/book?token=${token}${excerpt ? '&extrait=1' : ''}`;
 
     const browser = await puppeteer.launch({
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,

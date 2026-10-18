@@ -20,10 +20,7 @@ const localTransporter = nodemailer.createTransport({
 export async function sendSiteMail({to}: { to: string; }) {
     // Le même jeton que le téléchargement du livre depuis l'admin (PDF_API_TOKEN)
     const token = pdfApiToken();
-    const protocol: string = 'http';
-    const host = 'localhost:3000';
-
-    const pdfBuffer = await generatePdfFromEvent(token, protocol, host, {excerpt: true});
+    const pdfBuffer = await generatePdfFromEvent(token, {excerpt: true});
     const buffer = Buffer.from(pdfBuffer.buffer);
 
     const [bookConfig, siteConfig, postCount] = await Promise.all([
