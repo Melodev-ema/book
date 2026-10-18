@@ -7,6 +7,7 @@
 
 // dans votre composant
 import DOMPurify from 'dompurify';
+import {sanitizeHtml} from '~/utils/htmlSanitizer';
 
 export default {
     props: {
@@ -18,13 +19,7 @@ export default {
     computed: {
         safeHtml() {
             // supprime tout ce qui peut être dangereux
-            return DOMPurify.sanitize(
-                this.rawHtml,
-                {
-                    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'p', 'strong', 'em', 'ul', 'li', 'a', 'img', 'u', 's', 'br'],
-                    ALLOWED_ATTR: ['src', 'alt', 'title']
-                }
-            );
+            return sanitizeHtml(DOMPurify, this.rawHtml);
         }
     }
 };
