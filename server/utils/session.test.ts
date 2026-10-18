@@ -1,6 +1,5 @@
 import {beforeAll, describe, expect, it} from 'vitest';
-import {createApp, createEvent, defineEventHandler, toWebHandler} from 'h3';
-import type {IncomingMessage, ServerResponse} from 'node:http';
+import {createApp, defineEventHandler, toWebHandler} from 'h3';
 
 process.env.SESSION_PASSWORD = 'a'.repeat(32);
 
@@ -14,6 +13,11 @@ app.use('/login', defineEventHandler(async (event) => {
     return {};
 }));
 app.use('/me', defineEventHandler(async (event) => getUserSession(event)));
+app.use('/require', defineEventHandler(async (event) => requireUserSession(event)));
+app.use('/api/session', defineEventHandler(async (event) => {
+    const {user} = await getUserSession(event);
+    return {loggedIn: !!user, user: user ?? null};
+}));
 app.use('/logout', defineEventHandler(async (event) => {
     await clearUserSession(event);
     return {};
@@ -71,8 +75,21 @@ describe('session', () => {
         expect(response.headers.get('set-cookie')).toMatch(/livre-session=;/);
     });
 
-    it('requireUserSession lève 401 sans cookie', async () => {
-        const event = createEvent({headers: {}} as IncomingMessage, {} as ServerResponse);
-        await expect(requireUserSession(event)).rejects.toMatchObject({statusCode: 401});
+    it('requireUserSession répond 401 sans cookie et sans en poser', async () => {
+        const response = await handler(new Request('http://x/require'));
+        expect(response.status).toBe(401);
+        expect(response.headers.get('set-cookie')).toBeNull();
+    });
+
+    it('requireUserSession répond 401 avec un cookie illisible, sans en poser', async () => {
+        const response = await handler(new Request('http://x/require', {headers: {cookie: 'livre-session=nimportequoi'}}));
+        expect(response.status).toBe(401);
+        expect(response.headers.get('set-cookie')).toBeNull();
+    });
+
+    it('GET /api/session sans cookie : non connecté, pas de Set-Cookie', async () => {
+        const response = await handler(new Request('http://x/api/session'));
+        expect(await response.json()).toEqual({loggedIn: false, user: null});
+        expect(response.headers.get('set-cookie')).toBeNull();
     });
 });

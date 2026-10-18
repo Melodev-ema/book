@@ -20,14 +20,10 @@ export async function setUserSession(event: H3Event, user: SessionUser): Promise
     await session.update({user});
 }
 
+// Lecture seule : useSession créerait une session anonyme et poserait un cookie
 export async function getUserSession(event: H3Event): Promise<{user?: SessionUser}> {
-    // Un cookie illisible ou expiré fait lever useSession : on le traite comme « pas connecté »
-    try {
-        const session = await useSession<{user?: SessionUser}>(event, SESSION_CONFIG);
-        return session.data.user ? {user: session.data.user} : {};
-    } catch {
-        return {};
-    }
+    const user = await unsealUser(event.node.req.headers.cookie ?? '');
+    return user ? {user} : {};
 }
 
 export async function requireUserSession(event: H3Event): Promise<{user: SessionUser}> {
@@ -42,19 +38,21 @@ export async function clearUserSession(event: H3Event): Promise<void> {
     await clearSession(event, SESSION_CONFIG);
 }
 
-// Pour le middleware Astro, qui n'a qu'une Request (h3 n'utilise pas l'event ici)
+// Pour le middleware Astro, qui n'a qu'une Request
 export async function getSessionUserFromRequest(request: Request): Promise<SessionUser | null> {
-    const match = (request.headers.get('cookie') ?? '')
-        .split(';')
-        .map((part) => part.trim())
-        .find((part) => part.startsWith(`${SESSION_CONFIG.name}=`));
+    return unsealUser(request.headers.get('cookie') ?? '');
+}
+
+async function unsealUser(cookieHeader: string): Promise<SessionUser | null> {
+    const prefix = `${SESSION_CONFIG.name}=`;
+    const match = cookieHeader.split(';').map((part) => part.trim()).find((part) => part.startsWith(prefix));
     if (!match) {
         return null;
     }
 
     try {
-        const value = decodeURIComponent(match.slice(SESSION_CONFIG.name!.length + 1));
-        const session = await unsealSession(null as unknown as H3Event, SESSION_CONFIG, value);
+        // h3 n'utilise pas l'event pour desceller
+        const session = await unsealSession(null as unknown as H3Event, SESSION_CONFIG, decodeURIComponent(match.slice(prefix.length)));
         return (session.data as {user?: SessionUser}).user ?? null;
     } catch {
         return null;
