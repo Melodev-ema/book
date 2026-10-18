@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@nuxt/ui";
 @config "../../tailwind.config.js";
 
 /* ─── Design tokens « Nuit d'atelier » (landing et futures interfaces) ─── */
