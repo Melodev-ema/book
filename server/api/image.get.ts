@@ -1,3 +1,4 @@
+import {defineEventHandler} from 'h3';
 import Attachment from "~/server/models/attachment";
 
 export default defineEventHandler(async () => {

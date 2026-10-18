@@ -1,3 +1,5 @@
+import {defineEventHandler} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Post from "~/server/models/post";
 import Prospect from "~/server/models/prospect";
 

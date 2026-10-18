@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readMultipartFormData} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Attachment from "~/server/models/attachment";
 import fs from 'fs';
 import {join} from "pathe";

@@ -1,3 +1,4 @@
+import {defineEventHandler} from 'h3';
 import BookConfig from "~/server/models/bookConfig";
 
 export default defineEventHandler(async () => {

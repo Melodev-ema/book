@@ -1,3 +1,5 @@
+import {defineEventHandler, getRouterParam} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Post from "~/server/models/post";
 
 export default defineEventHandler(async (event) => {

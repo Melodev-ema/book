@@ -1,3 +1,4 @@
+import {defineEventHandler, createError, readValidatedBody} from 'h3';
 import {z} from 'zod';
 import User, {UserRole} from "~/server/models/user";
 

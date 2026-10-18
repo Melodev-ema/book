@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readBody} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Post from "~/server/models/post";
 import {sanitizeContent} from "~/server/services/contentSanitizer";
 

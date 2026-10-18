@@ -1,3 +1,4 @@
+import {pdfApiToken} from '~/server/utils/config';
 import nodemailer from 'nodemailer';
 import {generatePdfFromEvent} from "~/server/services/bookPdfGenerator";
 import {createSSRApp} from "vue";
@@ -18,7 +19,7 @@ const localTransporter = nodemailer.createTransport({
 
 export async function sendSiteMail({to}: { to: string; }) {
     // Le même jeton que le téléchargement du livre depuis l'admin (PDF_API_TOKEN)
-    const token = useRuntimeConfig().pdfApiToken;
+    const token = pdfApiToken();
     const protocol: string = 'http';
     const host = 'localhost:3000';
 

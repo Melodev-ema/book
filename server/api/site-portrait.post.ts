@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readMultipartFormData} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import fs from 'fs/promises';
 import {join} from 'pathe';
 import SiteConfig from "~/server/models/siteConfig";

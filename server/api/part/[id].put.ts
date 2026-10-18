@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readBody, getRouterParam} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Part from "~/server/models/part";
 
 // Renomme une partie

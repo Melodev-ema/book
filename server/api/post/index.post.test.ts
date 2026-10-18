@@ -9,10 +9,14 @@ vi.mock('~/server/models/post', () => ({
     },
 }));
 
-vi.stubGlobal('defineEventHandler', (handler: unknown) => handler);
-vi.stubGlobal('requireUserSession', vi.fn(async () => ({})));
-vi.stubGlobal('readBody', async (event: {body: unknown}) => event.body);
-vi.stubGlobal('createError', (error: object) => Object.assign(new Error(), error));
+vi.mock('h3', async (orig) => ({
+    ...await orig<typeof import('h3')>(),
+    readBody: async (event: {body: unknown}) => event.body,
+}));
+
+vi.mock('~/server/utils/session', () => ({
+    requireUserSession: vi.fn(async () => ({})),
+}));
 
 const {default: handler} = await import('./index.post');
 

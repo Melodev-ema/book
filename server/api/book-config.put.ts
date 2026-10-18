@@ -1,3 +1,5 @@
+import {defineEventHandler, readBody} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import BookConfig from "~/server/models/bookConfig";
 import {landingTocLimit} from "~/utils/bookToc";
 

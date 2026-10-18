@@ -1,3 +1,4 @@
+import {defineEventHandler, createError, readValidatedBody} from 'h3';
 import Prospect from "~/server/models/prospect";
 import {z} from "zod";
 import {sendSiteMail} from "~/server/services/sendSiteMail";

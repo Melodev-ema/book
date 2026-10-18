@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readMultipartFormData} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import type { ImportResult} from "~/server/utils/importer/importFromJson";
 import {importFromJson, importFromText} from "~/server/utils/importer/importFromJson";
 
