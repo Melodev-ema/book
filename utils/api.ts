@@ -54,6 +54,11 @@ export async function apiFetch<T>(url: string, opts: ApiOptions = {}): Promise<T
         throw new ApiError(res.status, data);
     }
 
+    // Réponse vide (204, corps de longueur 0) : rien à parser
+    if (res.status === 204 || res.headers.get('content-length') === '0') {
+        return null as T;
+    }
+
     return (isJson ? await res.json() : await res.blob()) as T;
 }
 

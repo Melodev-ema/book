@@ -25,6 +25,13 @@ afterEach(() => {
 });
 
 describe('apiFetch', () => {
+    it('resolves to null on a 204 or empty body', async () => {
+        mockFetch({ok: true, status: 204, headers: new Headers()});
+        expect(await apiFetch('/api/x', {method: 'DELETE'})).toBeNull();
+        mockFetch({ok: true, status: 200, headers: new Headers({'content-length': '0', 'content-type': 'application/json'})});
+        expect(await apiFetch('/api/x')).toBeNull();
+    });
+
     it('sends a plain body as JSON', async () => {
         const fn = mockFetch(jsonResponse(200, {ok: true}));
         await apiFetch('/api/x', {method: 'POST', body: {a: 1}});
