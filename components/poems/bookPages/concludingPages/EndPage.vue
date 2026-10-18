@@ -11,6 +11,7 @@
 
 <script lang="ts">
 
+import {computed} from "vue";
 import {useBookStore} from "~/stores/bookStore";
 
 export default {

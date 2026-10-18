@@ -1,4 +1,5 @@
 <template>
+  <FragmentContainer>
     <p
         v-if="loadError"
         class="p-8 text-center"
@@ -83,9 +84,11 @@
             :remaining="excerptRemaining"/>
         <EndPage v-else/>
     </div>
+  </FragmentContainer>
 </template>
 
 <script lang="ts">
+import FragmentContainer from "~/components/layout/FragmentContainer.vue";
 import CoverPage from "~/components/poems/bookPages/preliminaryPages/CoverPage.vue";
 import PoemPage from "~/components/poems/bookPages/PoemPage.vue";
 import BasePage from "~/components/poems/bookPages/BasePage.vue";
@@ -93,6 +96,7 @@ import EndPage from "~/components/poems/bookPages/concludingPages/EndPage.vue";
 import ExcerptEndPage from "~/components/poems/bookPages/concludingPages/ExcerptEndPage.vue";
 import TocPage from "~/components/poems/bookPages/TocPage.vue";
 import PartPage from "~/components/poems/bookPages/PartPage.vue";
+import {apiFetch} from "~/utils/api";
 import type {PostInterface} from "~/server/models/post";
 import PostEntity from "~/entities/PostEntity";
 import {useBookStore} from "~/stores/bookStore";
@@ -101,6 +105,7 @@ import {BOOK_TOKEN_HEADER} from "~/utils/bookAccess";
 
 export default {
     components: {
+        FragmentContainer,
         EndPage,
         ExcerptEndPage,
         TocPage,
@@ -109,25 +114,9 @@ export default {
         BasePage,
         CoverPage,
     },
-    setup() {
-        definePageMeta({
-            layout: 'book',
-            middleware: ['protect-book'],
-        });
-        const bookStore = useBookStore();
-        const bookCssClass = computed(() => bookStore.bookCssClass);
-        const pageStyle = computed(() => `@page { size: ${bookStore.pageSize}; margin: 0; }`);
-        // Repris par Chrome comme titre du PDF
-        const isExcerpt = Boolean(useRoute().query.extrait);
-        const title = computed(() => isExcerpt ? `${bookStore.config.title} — extrait` : bookStore.config.title);
-        useHead({
-            title,
-            bodyAttrs: {
-                class: bookCssClass,
-                'data-theme': 'dark'
-            },
-            style: [{innerHTML: pageStyle}],
-        });
+    props: {
+        token: {type: String, default: ''},
+        excerpt: {type: Boolean, default: false},
     },
     data() {
         const bookStore = useBookStore();
@@ -150,7 +139,7 @@ export default {
     computed: {
         // ?extrait=1 : seulement les premiers textes (PDF envoyé aux prospects)
         isExcerpt(): boolean {
-            return Boolean(this.$route.query.extrait);
+            return this.excerpt;
         },
         tocPosition(): TocPosition {
             return this.bookStore.config.tocPosition;
@@ -165,23 +154,33 @@ export default {
     async mounted() {
         try {
             await this.bookStore.fetchConfig();
+            this.applyDocumentSettings();
             await this.getPosts();
         } catch (error) {
-            const status = (error as { statusCode?: number })?.statusCode;
+            const status = (error as { status?: number })?.status;
             this.loadError = status === 401
                 ? 'Accès refusé : connectez-vous, ou vérifiez le lien du livre.'
                 : 'Impossible de charger le livre. Réessayez dans un instant.';
         }
     },
     methods: {
+        // Remplace le useHead de Nuxt : classe du body, taille @page et titre (repris par Chrome pour le PDF)
+        applyDocumentSettings() {
+            document.body.classList.add(this.bookStore.bookCssClass);
+            document.body.dataset.theme = 'dark';
+            const style = document.createElement('style');
+            style.textContent = `@page { size: ${this.bookStore.pageSize}; margin: 0; }`;
+            document.head.appendChild(style);
+            const title = this.bookStore.config.title;
+            document.title = this.isExcerpt ? `${title} — extrait` : title;
+        },
         async getPosts() {
             // Tout le livre : sans « limit », l'API ne renvoie que les 10 derniers textes.
             // Sans session (génération du PDF), le jeton de l'URL ouvre la lecture des textes et des parties.
-            const token = typeof this.$route.query.token === 'string' ? this.$route.query.token : '';
-            const headers = token ? {[BOOK_TOKEN_HEADER]: token} : {};
+            const headers = this.token ? {[BOOK_TOKEN_HEADER]: this.token} : {};
             const [data, parts] = await Promise.all([
-                $fetch<{ rows: PostInterface[] }>('/api/post', {query: {limit: 'all'}, headers}),
-                $fetch<BookPart[]>('/api/part', {headers}),
+                apiFetch<{ rows: PostInterface[] }>('/api/post', {query: {limit: 'all'}, headers}),
+                apiFetch<BookPart[]>('/api/part', {headers}),
             ]);
             const posts = data.rows.map((post: PostInterface) => PostEntity.hydrateFromDatabase(post));
             this.posts = this.isExcerpt ? excerptPosts(posts, parts, EXCERPT_TEXT_COUNT) : posts;

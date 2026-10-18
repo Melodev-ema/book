@@ -11,6 +11,7 @@
 
 <script lang="ts">
 
+import {computed} from "vue";
 import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import {useBookStore} from "~/stores/bookStore";
 

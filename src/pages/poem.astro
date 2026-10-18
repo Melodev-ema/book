@@ -1,0 +1,7 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PoemListPage from '../../components/poems/PoemListPage.vue';
+---
+<BaseLayout title="Poèmes">
+    <PoemListPage client:only="vue"/>
+</BaseLayout>
