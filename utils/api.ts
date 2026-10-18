@@ -20,6 +20,10 @@ type ApiOptions = {
 };
 
 export async function apiFetch<T>(url: string, opts: ApiOptions = {}): Promise<T> {
+    if (typeof window === 'undefined') {
+        throw new Error('apiFetch est réservé au navigateur');
+    }
+
     const headers: Record<string, string> = {...opts.headers};
     let body: BodyInit | undefined;
 
@@ -36,7 +40,10 @@ export async function apiFetch<T>(url: string, opts: ApiOptions = {}): Promise<T
         for (const [key, value] of Object.entries(opts.query)) {
             params.append(key, String(value));
         }
-        fullUrl += (url.includes('?') ? '&' : '?') + params.toString();
+        const qs = params.toString();
+        if (qs) {
+            fullUrl += (url.includes('?') ? '&' : '?') + qs;
+        }
     }
 
     const res = await fetch(fullUrl, {method: opts.method ?? 'GET', headers, body});

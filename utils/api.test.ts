@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {apiFetch, apiTry, ApiError} from './api';
 
 function mockFetch(response: Partial<Response> & {json?: () => Promise<unknown>}) {
@@ -15,6 +15,10 @@ function jsonResponse(status: number, data: unknown) {
         json: async () => data,
     };
 }
+
+beforeEach(() => {
+    vi.stubGlobal('window', {});
+});
 
 afterEach(() => {
     vi.unstubAllGlobals();
@@ -52,6 +56,17 @@ describe('apiFetch', () => {
         expect(error).toBeInstanceOf(ApiError);
         expect(error.status).toBe(401);
         expect(error.data).toEqual({message: 'no'});
+    });
+
+    it('does not append a trailing ? for an empty query', async () => {
+        const fn = mockFetch(jsonResponse(200, {}));
+        await apiFetch('/api/x', {query: {}});
+        expect(fn.mock.calls[0][0]).toBe('/api/x');
+    });
+
+    it('throws a clear error outside the browser', async () => {
+        vi.stubGlobal('window', undefined);
+        await expect(apiFetch('/api/x')).rejects.toThrow('apiFetch est réservé au navigateur');
     });
 
     it('returns a blob for a non-JSON response', async () => {
