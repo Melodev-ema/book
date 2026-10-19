@@ -2,34 +2,39 @@ import {defineEventHandler, createError, readValidatedBody} from 'h3';
 import Prospect from "~/server/models/prospect";
 import {z} from "zod";
 import {sendSiteMail} from "~/server/services/sendSiteMail";
+import {clientIp, createRateLimiter, tooManyRequests} from "~/server/utils/rateLimit";
 
 const bodySchema = z.object({
-    email: z.string().email(),
+    email: z.string().trim().toLowerCase().email().max(254),
 });
 
+// Route publique qui génère un PDF et envoie un email : limitée par IP, par adresse et au total
+const HOUR = 60 * 60 * 1000;
+const perIp = createRateLimiter({max: 3, windowMs: HOUR});
+const perEmail = createRateLimiter({max: 1, windowMs: 24 * HOUR});
+const overall = createRateLimiter({max: 60, windowMs: HOUR});
+
 export default defineEventHandler(async (event) => {
+    if (!perIp.hit(clientIp(event))) {
+        tooManyRequests();
+    }
+
     const {email} = await readValidatedBody(event, bodySchema.parse);
 
-    await Prospect.create({
-        email,
-    }).catch((error) => {
-        throw createError({
-            statusCode: error.code,
-            statusMessage: error.name,
-        });
-    });
+    if (!perEmail.hit(email) || !overall.hit('all')) {
+        tooManyRequests();
+    }
 
-    return sendSiteMail({to: email})
-        .then(() => {
-            return {
-                message: 'Email envoyé avec succès',
-            };
-        })
-        .catch(() => {
-            throw createError({
-                statusCode: 500,
-                statusMessage: 'Erreur lors de l\'envoi de l\'email',
-            });
-        });
+    await Prospect.create({email});
 
+    try {
+        await sendSiteMail({to: email});
+    } catch (error) {
+        console.error('Envoi de l\'extrait impossible :', error);
+        // L'adresse pourra redemander l'extrait
+        perEmail.reset(email);
+        throw createError({statusCode: 500, statusMessage: 'Erreur lors de l\'envoi de l\'email'});
+    }
+
+    return {message: 'Email envoyé avec succès'};
 });

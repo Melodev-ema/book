@@ -16,9 +16,15 @@ for (const [key, value] of Object.entries(loadEnv(mode, process.cwd(), ''))) {
 
 export default defineConfig({
     output: 'server',
-    adapter: node({mode: 'standalone'}),
+    // 20 Mo par requête au plus (1 Go par défaut) : imports de fichiers et images compris
+    adapter: node({mode: 'standalone', bodySizeLimit: 20 * 1024 * 1024}),
     integrations: [vue({appEntrypoint: '/src/vue-app'})],
     server: {port: 3000, host: true},
+    // Derrière un proxy : SITE_DOMAIN (au build) fait confiance à X-Forwarded-Host et X-Forwarded-For,
+    // pour que les limites d'essais (login, extrait gratuit) comptent par visiteur et non par proxy
+    security: {
+        allowedDomains: process.env.SITE_DOMAIN ? [{hostname: process.env.SITE_DOMAIN, protocol: 'https'}] : [],
+    },
     vite: {
         plugins: [tailwindcss()],
         resolve: {

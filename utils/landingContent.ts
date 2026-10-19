@@ -156,7 +156,11 @@ function mergeLink(value: unknown, fallback: LandingContent['author']['link']): 
         return fallback;
     }
     const href = str(value.href, '').trim();
-    return href ? {label: str(value.label, '').trim() || href, href} : null;
+    // Seuls les liens web et mail : un « javascript: » saisi dans l'admin s'exécuterait sur la landing
+    if (!/^(https?:\/\/|mailto:)/i.test(href)) {
+        return null;
+    }
+    return {label: str(value.label, '').trim() || href, href};
 }
 
 // Fusionne un contenu enregistré (éventuellement partiel ou ancien) avec les valeurs par défaut.

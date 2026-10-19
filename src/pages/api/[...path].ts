@@ -3,4 +3,5 @@ import {apiWebHandler} from '~/server/app';
 
 export const prerender = false;
 
-export const ALL: APIRoute = ({request}) => apiWebHandler(request);
+// clientAddress : l'IP du visiteur, pour limiter les tentatives (login, extrait gratuit)
+export const ALL: APIRoute = ({request, clientAddress}) => apiWebHandler(request, {clientAddress});

@@ -9,6 +9,7 @@ const pdfBuffer = Buffer.from('%PDF-1.4 faux pdf');
 const mocks = vi.hoisted(() => ({
     attachmentCreate: vi.fn(),
     generatePdf: vi.fn(),
+    writeFile: vi.fn<(path: string, data: unknown) => Promise<void>>(async () => undefined),
 }));
 
 // Les modèles Sequelize et le générateur de PDF sont remplacés : aucune base ni navigateur
@@ -31,10 +32,10 @@ vi.mock('~/server/utils/db', () => ({default: {sequelize: {transaction: vi.fn()}
 vi.mock('~/server/services/sendSiteMail', () => ({sendSiteMail: vi.fn()}));
 vi.mock('~/server/services/bookPdfGenerator', () => ({generatePdfFromEvent: mocks.generatePdf}));
 // L'écriture du fichier téléversé ne doit pas toucher le disque
-vi.mock('fs', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('fs')>();
-    const writeFile = vi.fn((_path: string, _data: unknown, callback: (err: null) => void) => callback(null));
-    return {...actual, default: {...actual, writeFile}};
+vi.mock('fs/promises', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('fs/promises')>();
+    const fake = {...actual, mkdir: vi.fn(async () => undefined), writeFile: mocks.writeFile, unlink: vi.fn(async () => undefined)};
+    return {...fake, default: fake};
 });
 
 const {setUserSession} = await import('./utils/session');
@@ -93,18 +94,28 @@ describe('application h3 de l\'API', () => {
         expect((await response.arrayBuffer()).byteLength).toBe(pdfBuffer.length);
     });
 
-    it('POST /api/import/image transmet le fichier multipart intact', async () => {
+    const PNG = [0x89, 0x50, 0x4e, 0x47, 1, 2];
+    const uploadImage = (bytes: number[], filename: string, pageType: string) => {
         const form = new FormData();
-        form.append('file', new File([new Uint8Array([1, 2, 3])], 'test.png', {type: 'image/png'}));
-        form.append('type', 'portrait');
+        form.append('file', new File([new Uint8Array(bytes)], filename, {type: 'image/png'}));
+        form.append('data', pageType);
+        return apiWebHandler(new Request('http://x/api/import/image', {method: 'POST', headers: {cookie}, body: form}));
+    };
 
-        const response = await apiWebHandler(new Request('http://x/api/import/image', {
-            method: 'POST',
-            headers: {cookie},
-            body: form,
-        }));
+    it('POST /api/import/image enregistre l\'image sous un nom choisi par le serveur', async () => {
+        const response = await uploadImage(PNG, '../../server/app.ts', 'cover');
 
         expect(response.status).toBe(200);
-        expect(mocks.attachmentCreate).toHaveBeenCalledWith(expect.objectContaining({size: 3, pageType: 'portrait'}));
+        expect(mocks.attachmentCreate).toHaveBeenCalledWith(expect.objectContaining({size: 6, pageType: 'cover'}));
+        const writtenPath = mocks.writeFile.mock.lastCall![0] as string;
+        expect(writtenPath).toMatch(/public\/uploads\/cover-\d+\.png$/);
+    });
+
+    it('POST /api/import/image refuse un fichier qui n\'est pas une image', async () => {
+        expect((await uploadImage([0x3c, 0x68, 0x74, 0x6d], 'page.png', 'cover')).status).toBe(400);
+    });
+
+    it('POST /api/import/image refuse un emplacement inconnu', async () => {
+        expect((await uploadImage(PNG, 'a.png', '../evil')).status).toBe(400);
     });
 });

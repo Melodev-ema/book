@@ -50,7 +50,7 @@
                         class="text-sm text-danger"
                         role="alert"
                     >
-                        {{ status === 'invalid' ? 'Merci d\'indiquer une adresse e-mail valide.' : 'L\'envoi n\'a pas abouti. Réessayez dans un instant.' }}
+                        {{ status === 'invalid' ? 'Merci d\'indiquer une adresse e-mail valide.' : errorMessage }}
                     </p>
                     <button
                         type="submit"
@@ -99,7 +99,7 @@ import CheckIcon from "@heroicons/vue/24/outline/CheckIcon";
 import PaperAirplaneIcon from "@heroicons/vue/24/outline/PaperAirplaneIcon";
 import {ref} from "vue";
 import BookSpread from "~/components/landing/BookSpread.vue";
-import {apiFetch} from "~/utils/api";
+import {ApiError, apiFetch} from "~/utils/api";
 import {toast} from "~/utils/toast";
 
 defineProps<{
@@ -115,6 +115,7 @@ type Status = 'idle' | 'invalid' | 'loading' | 'success' | 'error';
 
 const email = ref('');
 const status = ref<Status>('idle');
+const errorMessage = ref('');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -132,8 +133,12 @@ const submit = async () => {
         });
         status.value = 'success';
         toast.success('Votre extrait a été envoyé avec succès');
-    } catch {
+    } catch (error) {
         status.value = 'error';
+        // 429 : extrait déjà envoyé à cette adresse aujourd'hui, ou trop de demandes
+        errorMessage.value = error instanceof ApiError && error.status === 429
+            ? 'L\'extrait a déjà été demandé récemment. Vérifiez votre boîte mail ou réessayez plus tard.'
+            : 'L\'envoi n\'a pas abouti. Réessayez dans un instant.';
         toast.error('Une erreur est survenue');
     }
 };

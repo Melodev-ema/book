@@ -42,7 +42,9 @@ export default defineComponent({
 
             if (error) {
                 this.submitting = false;
-                this.errorMessage = 'Identifiants incorrects. Vérifiez l\'adresse et le mot de passe.';
+                this.errorMessage = error.status === 429
+                    ? 'Trop de tentatives. Réessayez dans un quart d\'heure.'
+                    : 'Identifiants incorrects. Vérifiez l\'adresse et le mot de passe.';
                 toast.error('Erreur lors de la connexion');
                 return;
             }

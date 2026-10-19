@@ -2,8 +2,11 @@ import {defineMiddleware} from 'astro:middleware';
 import {getSessionUserFromRequest} from '~/server/utils/session';
 import {pdfApiToken} from '~/server/utils/config';
 import {pageAccess} from '~/utils/pageAccess';
+import {assertProductionEnv} from '~/server/utils/env';
 
 export const onRequest = defineMiddleware(async (context, next) => {
+    assertProductionEnv();
+
     const {pathname, searchParams} = context.url;
 
     // L'API gère elle-même ses accès

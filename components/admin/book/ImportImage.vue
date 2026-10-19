@@ -46,6 +46,7 @@ import BaseDropzone from "~/components/ui/BaseDropzone.vue";
 import type {FileEntityInterface} from "~/entities/FileEntity";
 import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import SaveButton from "~/components/ui/buttons/SaveButton.vue";
+import {IMAGE_PAGE_TYPES} from "~/utils/imagePageTypes";
 
 export default defineComponent({
     name: 'ImportImage',
@@ -57,7 +58,7 @@ export default defineComponent({
                 return null;
             },
             validator: (value: string) => {
-                return ['cover', 'title', 'copyright', 'dedication_page', 'table_of_contents', 'preface_introduction', 'chapters', 'interlude_boxed_section', 'appendices', 'author_notes', 'index', 'acknowledgments_page', 'publisher_page', 'advertisements_other_books', 'back_cover', 'author_portrait'].includes(value);
+                return IMAGE_PAGE_TYPES.includes(value);
             },
         },
         image: {

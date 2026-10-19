@@ -1,0 +1,2 @@
+// Emplacements possibles d'une image du livre (Attachment.pageType), partagés par l'admin et l'API
+export const IMAGE_PAGE_TYPES = ['cover', 'title', 'copyright', 'dedication_page', 'table_of_contents', 'preface_introduction', 'chapters', 'interlude_boxed_section', 'appendices', 'author_notes', 'index', 'acknowledgments_page', 'publisher_page', 'advertisements_other_books', 'back_cover', 'author_portrait'];

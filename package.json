@@ -15,7 +15,8 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "eval": "npx --yes promptfoo@0.123.1 eval -c evals/promptfooconfig.yaml",
-    "eval:view": "npx --yes promptfoo@0.123.1 view"
+    "eval:view": "npx --yes promptfoo@0.123.1 view",
+    "admin:password": "node scripts/admin-password.mjs"
   },
   "dependencies": {
     "@adonisjs/hash": "^9.1.1",

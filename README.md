@@ -91,6 +91,9 @@ npm run dev
 | `PDF_API_TOKEN` | Secret qui autorise Puppeteer à ouvrir `/book?token=...` pour générer le PDF. |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | IA utilisée pour l'import de fichiers texte (endpoint Gemini compatible OpenAI). Prioritaire si la clé est définie. |
 | `AI_API_URL`, `AI_MODEL` | Sinon, serveur local compatible OpenAI (Ollama par exemple, `AI_API_URL=http://host.docker.internal:11434/`). |
+| `SMTP_URL` | Serveur d'envoi des emails (extrait gratuit), par exemple `smtps://utilisateur:motdepasse@smtp.exemple.fr:465`. Par défaut, MailHog de `docker-compose.yml`. |
+| `MAIL_FROM` | Adresse d'expédition des emails. |
+| `SITE_DOMAIN` | Nom de domaine public (ex. `livre.exemple.fr`), à définir **au build**. Derrière un proxy, il permet de lire l'IP réelle des visiteurs (`X-Forwarded-For`), utilisée pour limiter les tentatives de connexion et les demandes d'extrait. |
 | `PUPPETEER_EXECUTABLE_PATH` | Chemin vers Chromium. Déjà défini dans l'image Docker ; inutile en local, où Puppeteer utilise son propre Chromium. |
 
 Les fichiers `.env` et `.env.*` sont ignorés par git.
@@ -108,7 +111,13 @@ Les migrations se trouvent dans `migrations/` (fichiers `.cjs`), la configuratio
 
 Hors Docker : `npm run init-db` et `npm run create-migration -- <nom>`.
 
-Une migration crée un compte administrateur `admin@admin.com`. Changez son mot de passe avant tout déploiement.
+Une migration crée un compte administrateur `admin@admin.com`, dont le mot de passe est public : en production, la connexion avec ce mot de passe est refusée. Pour créer votre compte (ou changer un mot de passe) :
+
+```bash
+npm run admin:password -- vous@exemple.fr --disable-default
+```
+
+Le mot de passe (12 caractères minimum) est demandé sans écho. `--disable-default` désactive `admin@admin.com`. Comme les migrations, le script lit les variables `DB_*` de l'environnement (dans Docker : `make shell` puis la commande).
 
 ## Import de contenus
 
@@ -167,7 +176,13 @@ npm run build
 node dist/server/entry.mjs
 ```
 
-Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer.
+Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer. En production, il répond 500 tant que `SESSION_PASSWORD` (32 caractères minimum), `PDF_API_TOKEN` (16 minimum) et `DB_HOST`, `DB_NAME`, `DB_USER` ne sont pas définis.
+
+Protections intégrées (en mémoire, valables pour une seule instance du serveur) :
+
+- connexion : 10 tentatives par IP et par quart d'heure ;
+- extrait gratuit : 3 demandes par IP et par heure, 1 par adresse email et par jour, 60 par heure au total ;
+- requêtes limitées à 20 Mo, images du livre à 10 Mo (JPEG ou PNG vérifiés).
 
 **Attention :** `public/uploads/` (photo de l'auteur, images du livre) n'est pas servi par le serveur Node en production (`dist/client` ne contient que les fichiers présents au build). Il faut le servir depuis le proxy ou un stockage statique. Le `Dockerfile` actuel lance le serveur de développement et n'est pas une image de production.
 
