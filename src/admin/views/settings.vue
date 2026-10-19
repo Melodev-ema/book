@@ -144,6 +144,174 @@
                 </div>
 
                 <div
+                    v-else-if="section.id === 'legal'"
+                    class="grid grid-cols-1 gap-4 sm:grid-cols-2"
+                >
+                    <h3 class="text-[13px] font-semibold text-atelier-ink sm:col-span-2">Éditeur</h3>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-publisher"
+                            :class="labelClass">Dénomination sociale</label>
+                        <input
+                            id="site-legal-publisher"
+                            v-model="form.legal.publisher"
+                            placeholder="MELODEV"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-legalForm"
+                            :class="labelClass">Forme juridique</label>
+                        <input
+                            id="site-legal-legalForm"
+                            v-model="form.legal.legalForm"
+                            placeholder="SASU, entreprise individuelle…"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-capital"
+                            :class="labelClass">Capital social</label>
+                        <input
+                            id="site-legal-capital"
+                            v-model="form.legal.capital"
+                            placeholder="1 000 €"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5 sm:col-span-2">
+                        <label
+                            for="site-legal-address"
+                            :class="labelClass">Siège social</label>
+                        <input
+                            id="site-legal-address"
+                            v-model="form.legal.address"
+                            placeholder="14 rue…, 75015 Paris, France"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-siren"
+                            :class="labelClass">SIREN</label>
+                        <input
+                            id="site-legal-siren"
+                            v-model="form.legal.siren"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-siret"
+                            :class="labelClass">SIRET</label>
+                        <input
+                            id="site-legal-siret"
+                            v-model="form.legal.siret"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-rcs"
+                            :class="labelClass">RCS</label>
+                        <input
+                            id="site-legal-rcs"
+                            v-model="form.legal.rcs"
+                            placeholder="984 112 987 R.C.S. Paris"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-vatNumber"
+                            :class="labelClass">TVA intracommunautaire</label>
+                        <input
+                            id="site-legal-vatNumber"
+                            v-model="form.legal.vatNumber"
+                            placeholder="FR…"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-email"
+                            :class="labelClass">Email</label>
+                        <input
+                            id="site-legal-email"
+                            v-model="form.legal.email"
+                            type="email"
+                            placeholder="contact@exemple.fr"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-phone"
+                            :class="labelClass">Téléphone</label>
+                        <input
+                            id="site-legal-phone"
+                            v-model="form.legal.phone"
+                            type="tel"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5 sm:col-span-2">
+                        <label
+                            for="site-legal-publicationDirector"
+                            :class="labelClass">Direction de la publication</label>
+                        <input
+                            id="site-legal-publicationDirector"
+                            v-model="form.legal.publicationDirector"
+                            placeholder="Prénom Nom"
+                            :class="fieldClass">
+                    </div>
+                    <h3 class="text-[13px] font-semibold text-atelier-ink sm:col-span-2 mt-4">Hébergeur</h3>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-hostName"
+                            :class="labelClass">Nom</label>
+                        <input
+                            id="site-legal-hostName"
+                            v-model="form.legal.hostName"
+                            placeholder="Scaleway SAS"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-hostPhone"
+                            :class="labelClass">Téléphone</label>
+                        <input
+                            id="site-legal-hostPhone"
+                            v-model="form.legal.hostPhone"
+                            type="tel"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5 sm:col-span-2">
+                        <label
+                            for="site-legal-hostAddress"
+                            :class="labelClass">Adresse</label>
+                        <input
+                            id="site-legal-hostAddress"
+                            v-model="form.legal.hostAddress"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-hostSiren"
+                            :class="labelClass">SIREN</label>
+                        <input
+                            id="site-legal-hostSiren"
+                            v-model="form.legal.hostSiren"
+                            :class="fieldClass">
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <label
+                            for="site-legal-hostRcs"
+                            :class="labelClass">RCS</label>
+                        <input
+                            id="site-legal-hostRcs"
+                            v-model="form.legal.hostRcs"
+                            placeholder="RCS Paris"
+                            :class="fieldClass">
+                    </div>
+                    <span
+                        :class="hintClass"
+                        class="sm:col-span-2">Capital, SIREN, RCS, TVA et téléphones ne s'affichent que s'ils sont renseignés.</span>
+                </div>
+
+                <div
                     v-else
                     class="flex flex-col gap-1.5"
                 >
@@ -192,6 +360,7 @@ function toForm(content: LandingContent) {
             linkHref: content.author.link?.href || '',
         },
         footer: content.footer,
+        legal: {...content.legal},
     };
 }
 
@@ -212,6 +381,7 @@ export default defineComponent({
                 {id: 'author', title: 'Auteur', hint: 'Section « L\'auteur » de la page d\'accueil.'},
                 {id: 'hero', title: 'En-tête', hint: 'Haut de la page d\'accueil, à côté de la couverture.'},
                 {id: 'footer', title: 'Pied de page'},
+                {id: 'legal', title: 'Informations légales', hint: 'Affichées dans les mentions légales et la politique de confidentialité.'},
             ],
             form: toForm(landingContent),
         };
@@ -252,6 +422,7 @@ export default defineComponent({
                     link: author.linkHref.trim() ? {label: author.linkLabel, href: author.linkHref} : null,
                 },
                 footer: this.form.footer,
+                legal: this.form.legal,
             };
         },
         async save() {

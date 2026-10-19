@@ -20,8 +20,13 @@ describe('POST /api/prospect', () => {
 
     it('enregistre le prospect et envoie l\'extrait', async () => {
         expect(await ask('10.1.0.1', 'lecteur@exemple.fr')).toBe(200);
-        expect(Prospect.create).toHaveBeenCalledWith({email: 'lecteur@exemple.fr'});
+        expect(Prospect.create).toHaveBeenCalledWith({email: 'lecteur@exemple.fr', newsletterConsent: false, consentAt: null});
         expect(sendSiteMail).toHaveBeenCalledWith({to: 'lecteur@exemple.fr'});
+    });
+
+    it('enregistre l\'accord pour les nouvelles du livre, avec sa date', async () => {
+        await handler({body: {email: 'oui@exemple.fr', newsletterConsent: true}, context: {clientAddress: '10.1.0.6'}} as never);
+        expect(Prospect.create).toHaveBeenCalledWith({email: 'oui@exemple.fr', newsletterConsent: true, consentAt: expect.any(Date)});
     });
 
     it('n\'envoie l\'extrait qu\'une fois par jour à la même adresse', async () => {

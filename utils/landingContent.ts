@@ -1,6 +1,6 @@
 // Contenu éditorial de la page d'accueil (page de vente du livre).
 // Le titre, l'auteur et la couverture viennent de la configuration du livre (bookStore).
-// Les textes ci-dessous sont les valeurs par défaut. L'en-tête, l'auteur (photo comprise) et le pied de page
+// Les textes ci-dessous sont les valeurs par défaut. L'en-tête, l'auteur (photo comprise), le pied de page et les informations légales
 // se modifient dans l'admin (Configuration) et sont enregistrés en base (SiteConfigs) ; le reste se modifie ici.
 
 // Le sommaire affiché n'est pas écrit ici : il est calculé à partir des textes du livre
@@ -38,6 +38,42 @@ export interface LandingTestimonial {
     rating?: number;
 }
 
+// Éditeur et hébergeur du site, pour les mentions légales et la politique de confidentialité
+export interface LandingLegal {
+    // Dénomination sociale (ex. MELODEV)
+    publisher: string;
+    legalForm: string;
+    capital: string;
+    address: string;
+    siren: string;
+    siret: string;
+    rcs: string;
+    vatNumber: string;
+    email: string;
+    phone: string;
+    publicationDirector: string;
+    hostName: string;
+    hostAddress: string;
+    hostSiren: string;
+    hostRcs: string;
+    hostPhone: string;
+}
+
+const LEGAL_FIELDS: (keyof LandingLegal)[] = [
+    'publisher', 'legalForm', 'capital', 'address', 'siren', 'siret', 'rcs', 'vatNumber', 'email', 'phone',
+    'publicationDirector', 'hostName', 'hostAddress', 'hostSiren', 'hostRcs', 'hostPhone',
+];
+
+// Champs sans lesquels les mentions légales sont incomplètes. Les autres (capital, RCS, TVA, téléphones…)
+// dépendent de la forme de l'entreprise : ils ne s'affichent que s'ils sont renseignés.
+const REQUIRED_LEGAL_FIELDS: (keyof LandingLegal)[] = [
+    'publisher', 'legalForm', 'address', 'siret', 'email', 'publicationDirector', 'hostName', 'hostAddress',
+];
+
+export function missingLegalFields(legal: LandingLegal): (keyof LandingLegal)[] {
+    return REQUIRED_LEGAL_FIELDS.filter(field => !legal[field].trim());
+}
+
 export interface LandingContent {
     genre: string;
     pagesLabel: string;
@@ -68,6 +104,7 @@ export interface LandingContent {
         offers: LandingOffer[];
     };
     footer: string;
+    legal: LandingLegal;
 }
 
 export const landingContent: LandingContent = {
@@ -84,7 +121,7 @@ export const landingContent: LandingContent = {
         heading: 'Un extrait,',
         headingEmphasis: 'offert.',
         intro: 'Laissez votre adresse : vous recevrez par e-mail un extrait du livre en PDF, avec les premiers textes du recueil.',
-        note: 'Un seul e-mail, aucune inscription à une newsletter.',
+        note: 'Votre adresse sert à envoyer l\'extrait, et les nouvelles du livre seulement si vous cochez la case.',
     },
     author: {
         label: 'L\'auteur',
@@ -133,6 +170,8 @@ export const landingContent: LandingContent = {
         ],
     },
     footer: '© 2025 Élodie Malet – Melodev. Tous droits réservés.',
+    // Vide par défaut : se renseigne dans Configuration (les pages affichent « à compléter »)
+    legal: Object.fromEntries(LEGAL_FIELDS.map(field => [field, ''])) as unknown as LandingLegal,
 };
 
 type Loose = Record<string, unknown> | null | undefined;
@@ -170,11 +209,12 @@ export function purchasableOffers(offers: LandingOffer[]): LandingOffer[] {
 }
 
 // Fusionne un contenu enregistré (éventuellement partiel ou ancien) avec les valeurs par défaut.
-// Seuls l'en-tête, l'auteur (photo comprise) et le pied de page sont configurables ;
+// Seuls l'en-tête, l'auteur (photo comprise), le pied de page et les informations légales sont configurables ;
 // le reste (sommaire, extrait gratuit, offres, avis) garde toujours la valeur par défaut.
 export function mergeLandingContent(stored: Loose | unknown, defaults: LandingContent = landingContent): LandingContent {
     const data = section(stored);
     const author = section(data.author);
+    const legal = section(data.legal);
 
     return {
         ...defaults,
@@ -189,5 +229,6 @@ export function mergeLandingContent(stored: Loose | unknown, defaults: LandingCo
             link: 'link' in author ? mergeLink(author.link, defaults.author.link) : defaults.author.link,
         },
         footer: str(data.footer, defaults.footer),
+        legal: Object.fromEntries(LEGAL_FIELDS.map(field => [field, str(legal[field], defaults.legal[field]).trim()])) as unknown as LandingLegal,
     };
 }

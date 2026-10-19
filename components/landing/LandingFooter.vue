@@ -6,9 +6,22 @@
                 <span class="text-sm text-atelier-subtle">Achevé de composer dans l'atelier.</span>
             </div>
             <span class="flex-1"/>
-            <p class="text-sm text-atelier-subtle">
-                {{ copyright }}
-            </p>
+            <div class="flex flex-col gap-2 text-sm text-atelier-subtle sm:items-end">
+                <nav
+                    aria-label="Informations légales"
+                    class="flex gap-5"
+                >
+                    <a
+                        href="/mentions-legales"
+                        class="hover:text-atelier-ink"
+                    >Mentions légales</a>
+                    <a
+                        href="/confidentialite"
+                        class="hover:text-atelier-ink"
+                    >Politique de confidentialité</a>
+                </nav>
+                <p>{{ copyright }}</p>
+            </div>
         </div>
     </footer>
 </template>

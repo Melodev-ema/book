@@ -6,6 +6,8 @@ import {clientIp, createRateLimiter, tooManyRequests} from "~/server/utils/rateL
 
 const bodySchema = z.object({
     email: z.string().trim().toLowerCase().email().max(254),
+    // Case « recevoir les nouvelles du livre », non cochée par défaut
+    newsletterConsent: z.boolean().optional().default(false),
 });
 
 // Route publique qui génère un PDF et envoie un email : limitée par IP, par adresse et au total
@@ -19,13 +21,13 @@ export default defineEventHandler(async (event) => {
         tooManyRequests();
     }
 
-    const {email} = await readValidatedBody(event, bodySchema.parse);
+    const {email, newsletterConsent} = await readValidatedBody(event, bodySchema.parse);
 
     if (!perEmail.hit(email) || !overall.hit('all')) {
         tooManyRequests();
     }
 
-    await Prospect.create({email});
+    await Prospect.create({email, newsletterConsent, consentAt: newsletterConsent ? new Date() : null});
 
     try {
         await sendSiteMail({to: email});

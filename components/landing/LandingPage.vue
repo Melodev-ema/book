@@ -3,6 +3,7 @@
         <LandingNav
             :title="bookTitle"
             :sections="sections"
+            :can-buy="hasOffers"
             current-path="/"
         />
         <main>

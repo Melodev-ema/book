@@ -1,0 +1,63 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import LegalValue from '../components/LegalValue.astro';
+import {findBookConfig, findSiteConfig} from '~/server/services/publicData';
+
+const [site, bookConfig] = await Promise.all([findSiteConfig(), findBookConfig()]);
+// Valeurs simples : sur le modèle Sequelize, book.title serait masqué par les champs de la classe
+const book = JSON.parse(JSON.stringify(bookConfig));
+const {legal} = site;
+const bookTitle = book.title || 'Le livre';
+const author = book.author || '';
+const publisher = legal.publisher || 'l\'éditeur';
+const tel = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
+---
+<LegalLayout title="Mentions légales" bookTitle={bookTitle}>
+    <h2>Éditeur du site</h2>
+    <p>Le site « {bookTitle} » est édité par la société <strong><LegalValue value={legal.publisher}/></strong>.</p>
+    <ul>
+        <li>Dénomination sociale : <LegalValue value={legal.publisher}/></li>
+        <li>Forme juridique : <LegalValue value={legal.legalForm}/></li>
+        {legal.capital && <li>Capital social : {legal.capital}</li>}
+        <li>Siège social : <LegalValue value={legal.address}/></li>
+        {legal.siren && <li>SIREN : {legal.siren}</li>}
+        <li>SIRET : <LegalValue value={legal.siret}/></li>
+        {legal.rcs && <li>RCS : {legal.rcs}</li>}
+        {legal.vatNumber && <li>TVA intracommunautaire : {legal.vatNumber}</li>}
+        <li>Email : {legal.email ? <a href={`mailto:${legal.email}`}>{legal.email}</a> : <LegalValue value=""/>}</li>
+        {legal.phone && <li>Téléphone : <a href={tel(legal.phone)}>{legal.phone}</a></li>}
+        <li>Direction de la publication : <LegalValue value={legal.publicationDirector}/></li>
+    </ul>
+
+    <h2>Hébergement</h2>
+    <p>Le site est hébergé par :</p>
+    <ul>
+        <li><LegalValue value={legal.hostName}/></li>
+        <li><LegalValue value={legal.hostAddress}/></li>
+        {legal.hostSiren && <li>SIREN : {legal.hostSiren}</li>}
+        {legal.hostRcs && <li>{legal.hostRcs}</li>}
+        {legal.hostPhone && <li>Téléphone : {legal.hostPhone}</li>}
+    </ul>
+
+    <h2>Propriété intellectuelle</h2>
+    <p>
+        L'ensemble des contenus présents sur ce site, notamment les textes du livre et leurs extraits, les visuels et
+        les éléments graphiques, est la propriété de {publisher}{author && <Fragment> ou de son auteur, {author}</Fragment>}.
+    </p>
+    <p>
+        Toute reproduction, représentation, modification, publication ou adaptation, totale ou partielle, de ces
+        éléments est interdite sans autorisation préalable écrite de {publisher}.
+    </p>
+
+    <h2>Données personnelles</h2>
+    <p>
+        Le formulaire « Extrait gratuit » collecte votre adresse e-mail. Son utilisation, la durée de conservation et
+        vos droits sont décrits dans la <a href="/confidentialite">politique de confidentialité</a>.
+    </p>
+
+    <h2>Cookies et traceurs</h2>
+    <p>
+        Ce site n'utilise aucun outil de mesure d'audience, pixel publicitaire ou autre traceur nécessitant le
+        consentement de l'utilisateur.
+    </p>
+</LegalLayout>

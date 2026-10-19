@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {landingContent, mergeLandingContent, purchasableOffers} from './landingContent';
+import {landingContent, mergeLandingContent, missingLegalFields, purchasableOffers} from './landingContent';
 
 const linkOf = (href: string) => mergeLandingContent({author: {link: {label: 'Site', href}}}).author.link;
 
@@ -30,5 +30,28 @@ describe('purchasableOffers', () => {
 
     it('masque les offres par défaut tant que les liens ne sont pas configurés', () => {
         expect(mergeLandingContent({}).pricing.offers).toEqual([]);
+    });
+});
+
+describe('mergeLandingContent : informations légales', () => {
+    it('vides par défaut', () => {
+        expect(mergeLandingContent({}).legal.publisher).toBe('');
+        expect(missingLegalFields(mergeLandingContent({}).legal)).toContain('publisher');
+    });
+
+    it('garde les champs connus, nettoyés, et ignore les autres', () => {
+        const {legal} = mergeLandingContent({legal: {publisher: '  Melodev ', siret: 123, inconnu: 'x'}});
+        expect(legal.publisher).toBe('Melodev');
+        expect(legal.siret).toBe('');
+        expect(legal).not.toHaveProperty('inconnu');
+    });
+
+    it('ne signale plus rien quand les champs obligatoires sont remplis', () => {
+        const legal = {
+            ...mergeLandingContent({}).legal,
+            publisher: 'Melodev', legalForm: 'EI', siret: '123', address: '1 rue', email: 'a@b.fr',
+            publicationDirector: 'É. M.', hostName: 'OVH', hostAddress: '2 rue',
+        };
+        expect(missingLegalFields(legal)).toEqual([]);
     });
 });

@@ -1,0 +1,9 @@
+---
+// Une information légale, ou « à compléter » tant qu'elle n'est pas saisie dans Configuration
+interface Props {
+    value: string;
+}
+
+const {value} = Astro.props;
+---
+{value ? <Fragment>{value}</Fragment> : <span class="text-danger italic">à compléter</span>}

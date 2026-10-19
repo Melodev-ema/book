@@ -47,6 +47,7 @@
                 </li>
             </ol>
             <a
+                v-if="canBuy"
                 href="#livre"
                 class="flex h-10 shrink-0 items-center rounded-md bg-lilas px-4 text-sm font-semibold text-atelier-panel transition-colors duration-150 hover:bg-lilas-light"
             >
@@ -64,6 +65,8 @@ defineProps<{
     sections: { id: string; label: string }[];
     // Chemin de la page (le fragment, lui, n'existe que dans le navigateur)
     currentPath: string;
+    // Sans offre à acheter, pas de bouton « Acheter le livre »
+    canBuy?: boolean;
 }>();
 
 const activeId = ref('');

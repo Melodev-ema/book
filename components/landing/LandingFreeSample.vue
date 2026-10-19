@@ -52,6 +52,16 @@
                     >
                         {{ status === 'invalid' ? 'Merci d\'indiquer une adresse e-mail valide.' : errorMessage }}
                     </p>
+                    <!-- Accord séparé et facultatif : l'extrait est envoyé que la case soit cochée ou non -->
+                    <label class="flex cursor-pointer items-start gap-2.5 text-sm text-atelier-muted">
+                        <input
+                            v-model="newsletterConsent"
+                            type="checkbox"
+                            name="newsletterConsent"
+                            class="mt-0.5 size-4 shrink-0 accent-lilas"
+                        >
+                        Je souhaite aussi recevoir les nouvelles du livre (sortie, offres). Désinscription à tout moment.
+                    </label>
                     <button
                         type="submit"
                         class="flex h-12.5 items-center justify-center gap-2.5 rounded-md bg-lilas text-[15px] font-semibold text-atelier-panel transition-colors duration-150 hover:bg-lilas-light disabled:cursor-wait disabled:opacity-70"
@@ -74,6 +84,10 @@
                         class="text-sm text-atelier-subtle"
                     >
                         {{ note }}
+                        <a
+                            href="/confidentialite"
+                            class="underline underline-offset-2 hover:text-atelier-ink"
+                        >Politique de confidentialité</a>
                     </p>
                 </form>
 
@@ -114,6 +128,7 @@ defineProps<{
 type Status = 'idle' | 'invalid' | 'loading' | 'success' | 'error';
 
 const email = ref('');
+const newsletterConsent = ref(false);
 const status = ref<Status>('idle');
 const errorMessage = ref('');
 
@@ -129,7 +144,7 @@ const submit = async () => {
     try {
         await apiFetch('/api/prospect', {
             method: 'POST',
-            body: {email: email.value},
+            body: {email: email.value, newsletterConsent: newsletterConsent.value},
         });
         status.value = 'success';
         toast.success('Votre extrait a été envoyé avec succès');
