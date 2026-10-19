@@ -34,11 +34,14 @@ export default defineEventHandler(async (event) => {
         tooManyRequests();
     }
 
-    // Chaque demande est un contact volontaire : elle repousse les 3 ans de conservation d'un abonnement existant
+    // Chaque demande est un contact volontaire : elle repousse les 3 ans de conservation d'un abonnement existant.
+    // Une ligne par demande (pour les compter), mais une seule ligne d'abonné par adresse : déjà abonnée,
+    // la demande est enregistrée sans accord et son adresse sera effacée au bout de 30 jours.
     const now = new Date();
     try {
-        await Prospect.update({lastContactAt: now}, {where: {email, newsletterConsent: true}});
-        await Prospect.create({email, newsletterConsent, consentAt: newsletterConsent ? now : null, lastContactAt: now});
+        const [renewed] = await Prospect.update({lastContactAt: now}, {where: {email, newsletterConsent: true}});
+        const subscribes = newsletterConsent && renewed === 0;
+        await Prospect.create({email, newsletterConsent: subscribes, consentAt: subscribes ? now : null, lastContactAt: now});
     } catch (error) {
         console.error(`Enregistrement du prospect impossible (${describeError(error)})`);
         perEmail.reset(email);

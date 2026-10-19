@@ -37,6 +37,12 @@ describe('POST /api/prospect', () => {
         );
     });
 
+    it('n\'enregistre pas un second abonnement pour une adresse déjà abonnée', async () => {
+        vi.mocked(Prospect.update).mockResolvedValueOnce([1] as never);
+        await handler({body: {email: 'deja@exemple.fr', newsletterConsent: true}, context: {clientAddress: '10.1.0.10'}} as never);
+        expect(Prospect.create).toHaveBeenCalledWith({email: 'deja@exemple.fr', newsletterConsent: false, consentAt: null, lastContactAt: expect.any(Date)});
+    });
+
     it('n\'envoie l\'extrait qu\'une fois par jour à la même adresse', async () => {
         expect(await ask('10.1.0.2', 'deux@exemple.fr')).toBe(200);
         expect(await ask('10.1.0.3', 'DEUX@exemple.fr')).toBe(429);
