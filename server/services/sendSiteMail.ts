@@ -19,7 +19,6 @@ export async function sendSiteMail({to}: { to: string; }) {
     // Le même jeton que le téléchargement du livre depuis l'admin (PDF_API_TOKEN)
     const token = pdfApiToken();
     const pdfBuffer = await generatePdfFromEvent(token, {excerpt: true});
-    const buffer = Buffer.from(pdfBuffer.buffer);
 
     const [bookConfig, siteConfig, postCount] = await Promise.all([
         BookConfig.findOne(),
@@ -61,7 +60,7 @@ export async function sendSiteMail({to}: { to: string; }) {
             {
                 filename: 'extrait.pdf',
                 contentType: 'application/pdf',
-                content: buffer,
+                content: pdfBuffer,
                 contentDisposition: 'attachment',
             },
         ]

@@ -13,5 +13,14 @@ export function canAccessBook(ctx: BookAccessContext): boolean {
         return true;
     }
 
-    return !!ctx.expectedToken && ctx.tokenFromQuery === ctx.expectedToken;
+    return !!ctx.expectedToken && sameToken(ctx.tokenFromQuery, ctx.expectedToken);
+}
+
+// Comparaison à temps constant (fichier partagé avec le navigateur : sans node:crypto)
+function sameToken(provided: string, expected: string): boolean {
+    let diff = provided.length ^ expected.length;
+    for (let i = 0; i < expected.length; i++) {
+        diff |= (provided.charCodeAt(i) || 0) ^ expected.charCodeAt(i);
+    }
+    return diff === 0;
 }

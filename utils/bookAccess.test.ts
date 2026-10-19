@@ -20,6 +20,11 @@ describe('canAccessBook', () => {
         expect(canAccessBook({...base, tokenFromQuery: 'nope'})).toBe(false);
     });
 
+    it('denies a token that only shares a prefix', () => {
+        expect(canAccessBook({...base, tokenFromQuery: 'secret-tok'})).toBe(false);
+        expect(canAccessBook({...base, tokenFromQuery: 'secret-token-plus'})).toBe(false);
+    });
+
     it('denies a token when the server token is not configured', () => {
         expect(canAccessBook({...base, tokenFromQuery: 'secret-token', expectedToken: undefined})).toBe(false);
     });

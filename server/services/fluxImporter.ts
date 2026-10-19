@@ -1,10 +1,9 @@
 import {createError} from 'h3';
 import {extract as FeedExtractor} from "@extractus/feed-extractor";
 import {extract as ArticleExtractor} from "@extractus/article-extractor";
-import DOMPurify from "dompurify";
 import type {PostInterface} from "~/server/models/post";
 import Post from "~/server/models/post";
-import {JSDOM} from 'jsdom';
+import {sanitizeContent} from "~/server/services/contentSanitizer";
 import slugify from "slugify";
 import {createHash} from 'crypto';
 
@@ -50,19 +49,14 @@ export class FluxImporter {
                     continue;
                 }
 
-                const window = new JSDOM('').window;
-                const purify = DOMPurify(window);
-                const sanitizedContent = purify.sanitize(content, {
-                    ALLOWED_TAGS: ['h1', 'h2', 'h3', 'p', 'strong', 'em', 'ul', 'li', 'a', 'img', 'u', 's', 'br'],
-                    ALLOWED_ATTR: ['src', 'alt', 'title']
-                });
-
+                // Date illisible : celle de l'import, comme pour les fichiers
+                const publishDate = new Date(published);
                 const post = await Post.create({
                     postTitle: title,
                     author: author,
-                    content: sanitizedContent,
+                    content: sanitizeContent(content),
                     externalId: externalId,
-                    publishDate: new Date(published),
+                    publishDate: isNaN(publishDate.getTime()) ? new Date() : publishDate,
                 });
                 contents.push(post);
             } catch (error) {

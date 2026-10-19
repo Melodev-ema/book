@@ -2,7 +2,9 @@ import DOMPurify from "dompurify";
 import {JSDOM} from "jsdom";
 import {sanitizeHtml} from "~/utils/htmlSanitizer";
 
+// Une seule fenêtre JSDOM pour tout le serveur : le nettoyage est synchrone, il peut la partager
+const purify = DOMPurify(new JSDOM('').window);
+
 export function sanitizeContent(content: string) {
-    const window = new JSDOM('').window;
-    return sanitizeHtml(DOMPurify(window), content);
+    return sanitizeHtml(purify, content);
 }
