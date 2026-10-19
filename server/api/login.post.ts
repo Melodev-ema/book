@@ -13,7 +13,7 @@ const bodySchema = z.object({
 // 10 tentatives par IP et par quart d'heure ; une connexion réussie remet le compteur à zéro
 const attempts = createRateLimiter({max: 10, windowMs: 15 * 60 * 1000});
 
-// Mot de passe du compte admin@admin.com créé par les migrations (connu de tous : refusé en production).
+// Mot de passe du compte admin@admin.com de développement (seeders/, connu de tous : refusé en production).
 // Vérifié aussi quand l'email est inconnu : la réponse prend le même temps (pas d'énumération des comptes).
 export const DEFAULT_ADMIN_HASH = '$scrypt$n=16384,r=8,p=1$vTXHwMqvSo4ZrnE6ODvdVw$RRfbQPB56mZlappZwZTDG85AEf6t1BoSTWo0sWQW05nzQZrHmYuAmQECIoksTRODDcC2gLo7+7y336vDSPsCAQ';
 

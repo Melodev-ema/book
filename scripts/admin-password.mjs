@@ -1,6 +1,5 @@
 // Crée un compte administrateur ou change son mot de passe.
 // Usage : npm run admin:password -- <email>   (le mot de passe est demandé, sans écho)
-// Avec --disable-default : désactive aussi le compte admin@admin.com créé par les migrations.
 import {createInterface} from 'node:readline';
 import {createRequire} from 'node:module';
 import pg from 'pg';
@@ -30,10 +29,9 @@ function askHidden(question) {
 
 const args = process.argv.slice(2);
 const email = args.find((arg) => !arg.startsWith('--'));
-const disableDefault = args.includes('--disable-default');
 
 if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    console.error('Usage : npm run admin:password -- <email> [--disable-default]');
+    console.error('Usage : npm run admin:password -- <email>');
     process.exit(1);
 }
 
@@ -71,11 +69,6 @@ try {
         console.log(`Compte administrateur créé : ${email}`);
     } else {
         console.log(`Mot de passe changé : ${email}`);
-    }
-
-    if (disableDefault && email !== 'admin@admin.com') {
-        await client.query(`UPDATE "Users" SET "active" = false, "updatedAt" = now() WHERE "email" = 'admin@admin.com'`);
-        console.log('Compte admin@admin.com désactivé.');
     }
 } finally {
     await client.end();

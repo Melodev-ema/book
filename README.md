@@ -32,7 +32,7 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 
 1. Créer un fichier `.env.local` à la racine (voir [Variables d'environnement](#variables-denvironnement)) :
 
-   ```dotenv
+   ```bash
    SESSION_PASSWORD=une-chaine-aleatoire-d-au-moins-32-caracteres
    PDF_API_TOKEN=un-token-secret
    GEMINI_API_KEY=...
@@ -111,13 +111,15 @@ Les migrations se trouvent dans `migrations/` (fichiers `.cjs`), la configuratio
 
 Hors Docker : `npm run init-db` et `npm run create-migration -- <nom>`.
 
-Une migration crée un compte administrateur `admin@admin.com`, dont le mot de passe est public : en production, la connexion avec ce mot de passe est refusée. Pour créer votre compte (ou changer un mot de passe) :
+En dev, le seeder `seeders/` crée le compte `admin@admin.com` (même mot de passe qu'avant) : `docker compose up` le lance après les migrations, sinon `make seed` ou `npm run seed`. Il refuse de tourner en production, où ce mot de passe public est de toute façon refusé à la connexion. Les migrations ne créent plus aucun compte, et suppriment `admin@admin.com` s'il a encore ce mot de passe.
+
+Pour créer votre compte (ou changer un mot de passe) :
 
 ```bash
-npm run admin:password -- vous@exemple.fr --disable-default
+make admin-password EMAIL=vous@exemple.fr
 ```
 
-Le mot de passe (12 caractères minimum) est demandé sans écho. `--disable-default` désactive `admin@admin.com`. Comme les migrations, le script lit les variables `DB_*` de l'environnement (dans Docker : `make shell` puis la commande).
+Le mot de passe (12 caractères minimum) est demandé sans écho. La commande tourne dans le conteneur `app`, qui a déjà les variables `DB_*`. Hors Docker : `npm run admin:password -- vous@exemple.fr`, avec les variables `DB_*` dans l'environnement (ex. `DB_HOST=localhost`).
 
 ## Import de contenus
 
@@ -183,7 +185,7 @@ docker run -d -p 3000:3000 --env-file .env.production -v livre-uploads:/app/publ
 Au démarrage, le conteneur joue les migrations puis lance le serveur. Le volume `/app/public/uploads` garde les images envoyées depuis l'admin (photo de l'auteur, couverture) entre deux déploiements ; le serveur les sert lui-même sous `/uploads/`. Ensuite, créer le compte administrateur :
 
 ```bash
-docker exec -it <conteneur> npm run admin:password -- vous@exemple.fr --disable-default
+docker exec -it <conteneur> npm run admin:password -- vous@exemple.fr
 ```
 
 ### Purge des prospects (job planifié)
