@@ -11,6 +11,11 @@ export function envProblems(env: Env): string[] {
     if ((env.PDF_API_TOKEN ?? '').length < 16) {
         problems.push('PDF_API_TOKEN doit faire au moins 16 caractères');
     }
+    // Sans domaine au build, Astro ignore X-Forwarded-For : derrière un proxy, tous les visiteurs auraient la même IP
+    // et se partageraient les limites d'essais (login, extrait gratuit)
+    if (!env.BUILD_SITE_DOMAIN) {
+        problems.push('SITE_DOMAIN n\'était pas défini au build (docker build --build-arg SITE_DOMAIN=…)');
+    }
     for (const name of ['DB_HOST', 'DB_NAME', 'DB_USER']) {
         if (!env[name]) {
             problems.push(`${name} n'est pas défini`);
@@ -23,7 +28,8 @@ export function envProblems(env: Env): string[] {
 let checked = false;
 
 // Vérifiée à la première requête en production : tant qu'il manque quelque chose, le site répond 500
-export function assertProductionEnv(env: Env = process.env): void {
+// BUILD_SITE_DOMAIN est remplacé au build par sa valeur (astro.config.mjs)
+export function assertProductionEnv(env: Env = {...process.env, BUILD_SITE_DOMAIN: process.env.BUILD_SITE_DOMAIN}): void {
     if (checked || env.NODE_ENV !== 'production') {
         return;
     }

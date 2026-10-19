@@ -27,6 +27,10 @@ export default defineConfig({
     },
     vite: {
         plugins: [tailwindcss()],
+        // Le domaine utilisé ci-dessus, figé dans le build : le serveur refuse de démarrer en production sans lui
+        define: {
+            'process.env.BUILD_SITE_DOMAIN': JSON.stringify(process.env.SITE_DOMAIN ?? ''),
+        },
         resolve: {
             alias: {
                 '~': fileURLToPath(new URL('.', import.meta.url)),

@@ -7,6 +7,7 @@ const valid = {
     DB_HOST: 'db',
     DB_NAME: 'livre',
     DB_USER: 'livre',
+    BUILD_SITE_DOMAIN: 'livre.exemple.fr',
 };
 
 describe('envProblems', () => {
@@ -19,6 +20,10 @@ describe('envProblems', () => {
         expect(problems).toHaveLength(2);
         expect(problems.join(' ')).toMatch(/SESSION_PASSWORD/);
         expect(problems.join(' ')).toMatch(/PDF_API_TOKEN/);
+    });
+
+    it('signale un build sans SITE_DOMAIN', () => {
+        expect(envProblems({...valid, BUILD_SITE_DOMAIN: ''})).toEqual([expect.stringMatching(/SITE_DOMAIN/)]);
     });
 
     it('signale la base non configurée', () => {

@@ -93,7 +93,7 @@ npm run dev
 | `AI_API_URL`, `AI_MODEL` | Sinon, serveur local compatible OpenAI (Ollama par exemple, `AI_API_URL=http://host.docker.internal:11434/`). |
 | `SMTP_URL` | Serveur d'envoi des emails (extrait gratuit), par exemple `smtps://utilisateur:motdepasse@smtp.exemple.fr:465`. Par défaut, MailHog de `docker-compose.yml`. |
 | `MAIL_FROM` | Adresse d'expédition des emails. |
-| `SITE_DOMAIN` | Nom de domaine public (ex. `livre.exemple.fr`), à définir **au build**. Derrière un proxy, il permet de lire l'IP réelle des visiteurs (`X-Forwarded-For`), utilisée pour limiter les tentatives de connexion et les demandes d'extrait. |
+| `SITE_DOMAIN` | Nom de domaine public (ex. `livre.exemple.fr`), à définir **au build**. Derrière un proxy, il permet de lire l'IP réelle des visiteurs (`X-Forwarded-For`), utilisée pour limiter les tentatives de connexion et les demandes d'extrait. Obligatoire : en production, un build sans lui refuse de démarrer. |
 | `PUPPETEER_EXECUTABLE_PATH` | Chemin vers Chromium. Déjà défini dans l'image Docker ; inutile en local, où Puppeteer utilise son propre Chromium. |
 
 Les fichiers `.env` et `.env.*` sont ignorés par git.
