@@ -3,6 +3,9 @@ import LegalLayout from '../layouts/LegalLayout.astro';
 import LegalValue from '../components/LegalValue.astro';
 import {findBookConfig, findSiteConfig} from '~/server/services/publicData';
 
+// À changer à chaque modification du texte
+const LAST_UPDATE = '19 octobre 2026';
+
 const [site, bookConfig] = await Promise.all([findSiteConfig(), findBookConfig()]);
 // Valeurs simples : sur le modèle Sequelize, book.title serait masqué par les champs de la classe
 const book = JSON.parse(JSON.stringify(bookConfig));
@@ -10,11 +13,17 @@ const {legal} = site;
 const bookTitle = book.title || 'Le livre';
 const author = book.author || '';
 const publisher = legal.publisher || 'l\'éditeur';
+const contact = legal.email;
 const tel = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
 ---
 <LegalLayout title="Mentions légales" bookTitle={bookTitle}>
-    <h2>Éditeur du site</h2>
-    <p>Le site « {bookTitle} » est édité par la société <strong><LegalValue value={legal.publisher}/></strong>.</p>
+    <p class="mt-3 text-sm">Dernière mise à jour : {LAST_UPDATE}</p>
+
+    <h2>1. Éditeur du site</h2>
+    <p>
+        Le site « {bookTitle} » est édité par la société <strong><LegalValue value={legal.publisher}/></strong>,{' '}
+        <LegalValue value={legal.legalForm}/> de droit français.
+    </p>
     <ul>
         <li>Dénomination sociale : <LegalValue value={legal.publisher}/></li>
         <li>Forme juridique : <LegalValue value={legal.legalForm}/></li>
@@ -22,42 +31,151 @@ const tel = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`;
         <li>Siège social : <LegalValue value={legal.address}/></li>
         {legal.siren && <li>SIREN : {legal.siren}</li>}
         <li>SIRET : <LegalValue value={legal.siret}/></li>
-        {legal.rcs && <li>RCS : {legal.rcs}</li>}
-        {legal.vatNumber && <li>TVA intracommunautaire : {legal.vatNumber}</li>}
-        <li>Email : {legal.email ? <a href={`mailto:${legal.email}`}>{legal.email}</a> : <LegalValue value=""/>}</li>
+        {legal.rcs && <li>Immatriculation : {legal.rcs}</li>}
+        {legal.vatNumber && <li>Numéro de TVA intracommunautaire : {legal.vatNumber}</li>}
+        <li>Adresse électronique : {contact ? <a href={`mailto:${contact}`}>{contact}</a> : <LegalValue value=""/>}</li>
         {legal.phone && <li>Téléphone : <a href={tel(legal.phone)}>{legal.phone}</a></li>}
-        <li>Direction de la publication : <LegalValue value={legal.publicationDirector}/></li>
+        <li>Directrice ou directeur de la publication : <LegalValue value={legal.publicationDirector}/></li>
     </ul>
+    <p>
+        Pour toute question concernant le site ou son contenu, vous pouvez contacter l'éditeur à l'adresse électronique
+        indiquée ci-dessus.
+    </p>
 
-    <h2>Hébergement</h2>
+    <h2>2. Hébergement</h2>
     <p>Le site est hébergé par :</p>
+    <p><strong><LegalValue value={legal.hostName}/></strong></p>
     <ul>
-        <li><LegalValue value={legal.hostName}/></li>
-        <li><LegalValue value={legal.hostAddress}/></li>
+        <li>Siège social : <LegalValue value={legal.hostAddress}/></li>
         {legal.hostSiren && <li>SIREN : {legal.hostSiren}</li>}
-        {legal.hostRcs && <li>{legal.hostRcs}</li>}
-        {legal.hostPhone && <li>Téléphone : {legal.hostPhone}</li>}
+        {legal.hostRcs && <li>Immatriculation : {legal.hostRcs}</li>}
+        {legal.hostPhone && <li>Téléphone : <a href={tel(legal.hostPhone)}>{legal.hostPhone}</a></li>}
     </ul>
 
-    <h2>Propriété intellectuelle</h2>
+    <h2>3. Objet du site</h2>
     <p>
-        L'ensemble des contenus présents sur ce site, notamment les textes du livre et leurs extraits, les visuels et
-        les éléments graphiques, est la propriété de {publisher}{author && <Fragment> ou de son auteur, {author}</Fragment>}.
+        Le site « {bookTitle} » a pour objet la présentation d'une œuvre littéraire et de son univers, la diffusion
+        d'informations relatives au livre ainsi que la mise à disposition d'un extrait gratuit.
     </p>
     <p>
-        Toute reproduction, représentation, modification, publication ou adaptation, totale ou partielle, de ces
-        éléments est interdite sans autorisation préalable écrite de {publisher}.
+        Le site peut également permettre aux visiteurs de s'inscrire volontairement afin de recevoir des actualités
+        concernant le livre, sa publication et d'éventuelles offres associées.
+    </p>
+    <p>Les informations et contenus publiés sur le site sont susceptibles d'évoluer.</p>
+
+    <h2>4. Propriété intellectuelle</h2>
+    <p>
+        L'ensemble des contenus présents sur le site « {bookTitle} », notamment les textes, extraits littéraires,
+        illustrations, personnages, photographies, graphismes, logos et éléments visuels, est protégé par le Code de la
+        propriété intellectuelle.
+    </p>
+    <p>
+        Les droits d'auteur sur l'œuvre littéraire appartiennent à {author ? <Fragment>son auteur, {author}</Fragment> : 'son auteur'}.
+        Les autres éléments du site appartiennent à leurs auteurs ou titulaires de droits respectifs.
+    </p>
+    <p>{publisher} assure l'édition et l'exploitation du site dans le respect des droits qui lui ont été accordés.</p>
+    <p>
+        Toute reproduction, représentation, modification, adaptation, traduction, diffusion ou exploitation, totale ou
+        partielle, des contenus du site sans autorisation préalable des titulaires de droits est interdite, sauf
+        exceptions prévues par la loi.
+    </p>
+    <p>
+        La mise à disposition gratuite d'un extrait du livre ne constitue ni une cession de droits ni une autorisation de
+        redistribution ou d'exploitation commerciale.
+    </p>
+    {contact && <p>Pour toute demande d'autorisation, vous pouvez contacter <a href={`mailto:${contact}`}>{contact}</a>.</p>}
+
+    <h2>5. Utilisation du site</h2>
+    <p>
+        Les visiteurs s'engagent à utiliser le site conformément à la législation en vigueur et à ne pas compromettre son
+        fonctionnement, sa sécurité ou son accessibilité.
+    </p>
+    <p>
+        Toute tentative d'accès non autorisé aux systèmes d'administration, d'utilisation abusive des formulaires ou de
+        perturbation du fonctionnement du site est interdite.
+    </p>
+    <p>
+        {publisher} se réserve la possibilité de prendre les mesures techniques nécessaires pour préserver la sécurité et
+        la disponibilité du service.
     </p>
 
-    <h2>Données personnelles</h2>
+    <h2>6. Responsabilité</h2>
+    <p>{publisher} s'efforce de fournir des informations exactes, à jour et accessibles sur le site.</p>
     <p>
-        Le formulaire « Extrait gratuit » collecte votre adresse e-mail. Son utilisation, la durée de conservation et
-        vos droits sont décrits dans la <a href="/confidentialite">politique de confidentialité</a>.
+        Toutefois, malgré le soin apporté à leur rédaction et à leur publication, des erreurs, omissions ou
+        indisponibilités temporaires peuvent survenir.
+    </p>
+    <p>{publisher} peut modifier, corriger, compléter ou retirer les contenus du site sans préavis.</p>
+    <p>
+        L'accès au site peut être temporairement interrompu pour des raisons de maintenance, de sécurité, de mise à jour
+        ou en cas d'incident technique.
+    </p>
+    <p>
+        La responsabilité de {publisher} ne saurait être engagée dans les cas et limites autorisés par la législation
+        applicable, notamment en présence d'un événement de force majeure ou d'un dysfonctionnement imputable à un tiers.
+    </p>
+    <p>Aucune disposition des présentes mentions légales ne vise à exclure une responsabilité qui ne pourrait légalement l'être.</p>
+
+    <h2>7. Liens hypertextes</h2>
+    <p>Le site peut contenir des liens vers des sites internet ou services exploités par des tiers.</p>
+    <p>
+        {publisher} n'exerce pas de contrôle permanent sur ces ressources externes et ne peut garantir leur
+        disponibilité, leur exactitude ou leur conformité.
+    </p>
+    <p>La présence d'un lien hypertexte ne constitue pas nécessairement une approbation de son contenu ou de son éditeur.</p>
+    <p>
+        Les visiteurs sont invités à consulter les conditions d'utilisation et les politiques de confidentialité des
+        sites tiers auxquels ils accèdent.
     </p>
 
-    <h2>Cookies et traceurs</h2>
+    <h2>8. Données personnelles</h2>
+    <p>Dans le cadre du fonctionnement du site, {publisher} peut collecter et traiter certaines données personnelles, notamment :</p>
+    <ul>
+        <li>l'adresse e-mail communiquée pour recevoir un extrait gratuit du livre ;</li>
+        <li>l'adresse e-mail et les informations relatives au consentement à la réception des actualités du livre ;</li>
+        <li>les informations transmises volontairement dans les échanges avec {publisher} ;</li>
+        <li>certaines données techniques nécessaires à la sécurité et au fonctionnement du site.</li>
+    </ul>
     <p>
-        Ce site n'utilise aucun outil de mesure d'audience, pixel publicitaire ou autre traceur nécessitant le
-        consentement de l'utilisateur.
+        Ces traitements sont réalisés conformément au Règlement général sur la protection des données (RGPD) et à la
+        législation française applicable.
     </p>
+    <p>
+        Les finalités, bases légales, durées de conservation, destinataires et modalités d'exercice de vos droits sont
+        détaillés dans la <a href="/confidentialite">politique de confidentialité</a>.
+    </p>
+    {contact && <p>Pour toute question ou demande relative à vos données personnelles, vous pouvez contacter <a href={`mailto:${contact}`}>{contact}</a>.</p>}
+
+    <h2>9. Cookies et traceurs</h2>
+    <p>
+        Le site n'utilise aucun outil de mesure d'audience, pixel publicitaire ou dispositif de suivi comportemental
+        nécessitant le consentement des visiteurs.
+    </p>
+    <p>
+        Un cookie technique peut être utilisé exclusivement dans le cadre de l'authentification à l'espace
+        d'administration. Il n'est pas déposé lors de la navigation publique des visiteurs.
+    </p>
+    <p>
+        Les polices de caractères sont hébergées localement afin d'éviter le chargement de ressources auprès de
+        fournisseurs externes à cette fin.
+    </p>
+    <p>Dans ces conditions, aucun bandeau de recueil du consentement aux cookies n'est nécessaire.</p>
+    <p>
+        Pour davantage d'informations sur les traitements techniques, vous pouvez consulter la{' '}
+        <a href="/confidentialite">politique de confidentialité</a>.
+    </p>
+
+    <h2>10. Droit applicable</h2>
+    <p>Les présentes mentions légales sont soumises au droit français.</p>
+    <p>
+        Tout différend relatif à l'utilisation du site est soumis aux règles de compétence juridictionnelle applicables,
+        sous réserve des dispositions impératives protégeant notamment les consommateurs.
+    </p>
+
+    <h2>11. Modification des mentions légales</h2>
+    <p>
+        {publisher} se réserve le droit de modifier les présentes mentions légales afin de tenir compte des évolutions
+        légales, réglementaires, techniques ou éditoriales du site.
+    </p>
+    <p>La version en vigueur est celle publiée sur le site à la date de consultation.</p>
 </LegalLayout>

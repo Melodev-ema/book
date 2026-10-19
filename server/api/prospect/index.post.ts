@@ -16,6 +16,13 @@ const perIp = createRateLimiter({max: 3, windowMs: HOUR});
 const perEmail = createRateLimiter({max: 1, windowMs: 24 * HOUR});
 const overall = createRateLimiter({max: 60, windowMs: HOUR});
 
+// Résumé d'une erreur sans son message : ceux de la base et du serveur SMTP peuvent contenir l'adresse du visiteur,
+// qui ne doit pas finir dans les logs
+function describeError(error: unknown): string {
+    const {name, code, responseCode} = (error ?? {}) as {name?: string; code?: string; responseCode?: number};
+    return [name, code, responseCode && `SMTP ${responseCode}`].filter(Boolean).join(', ') || 'erreur inconnue';
+}
+
 export default defineEventHandler(async (event) => {
     if (!perIp.hit(clientIp(event))) {
         tooManyRequests();
@@ -27,12 +34,21 @@ export default defineEventHandler(async (event) => {
         tooManyRequests();
     }
 
-    await Prospect.create({email, newsletterConsent, consentAt: newsletterConsent ? new Date() : null});
+    // Chaque demande est un contact volontaire : elle repousse les 3 ans de conservation d'un abonnement existant
+    const now = new Date();
+    try {
+        await Prospect.update({lastContactAt: now}, {where: {email, newsletterConsent: true}});
+        await Prospect.create({email, newsletterConsent, consentAt: newsletterConsent ? now : null, lastContactAt: now});
+    } catch (error) {
+        console.error(`Enregistrement du prospect impossible (${describeError(error)})`);
+        perEmail.reset(email);
+        throw createError({statusCode: 500, statusMessage: 'Erreur lors de l\'enregistrement'});
+    }
 
     try {
         await sendSiteMail({to: email});
     } catch (error) {
-        console.error('Envoi de l\'extrait impossible :', error);
+        console.error(`Envoi de l'extrait impossible (${describeError(error)})`);
         // L'adresse pourra redemander l'extrait
         perEmail.reset(email);
         throw createError({statusCode: 500, statusMessage: 'Erreur lors de l\'envoi de l\'email'});

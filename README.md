@@ -186,6 +186,26 @@ Au démarrage, le conteneur joue les migrations puis lance le serveur. Le volume
 docker exec -it <conteneur> npm run admin:password -- vous@exemple.fr --disable-default
 ```
 
+### Purge des prospects (job planifié)
+
+La politique de confidentialité annonce des durées de conservation : un script les applique, en effaçant les adresses
+trop anciennes (la demande reste comptée dans les statistiques).
+
+- sans accord pour les nouvelles du livre : 30 jours après la demande d'extrait ;
+- abonnés : 3 ans après leur dernier contact (une nouvelle demande d'extrait repousse ce délai).
+
+Le serveur web ne le lance pas lui-même : il faut le planifier. Avec **Scaleway Serverless Jobs**, créer un job :
+
+- **image** : la même que le site (celle construite par le `Dockerfile`) ;
+- **commande** : `node dist/scripts/purge-prospects.mjs` ;
+- **planification** : chaque nuit, par exemple `0 3 * * *` (fuseau `Europe/Paris`) ;
+- **variables d'environnement** : `NODE_ENV=production` et les `DB_*` du site (en secrets).
+
+Le script affiche le nombre d'adresses effacées et sort en erreur (code 1) si la base est injoignable : le job apparaît
+alors en échec dans la console. Pour le lancer à la main : `npm run purge` (après `npm run build`).
+
+**Sans ce job, rien n'est purgé** : à vérifier à chaque mise en production.
+
 ### Sans Docker
 
 ```bash

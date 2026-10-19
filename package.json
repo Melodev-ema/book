@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev --host 0.0.0.0 --port 3000",
-    "build": "astro build",
+    "build": "astro build && npm run build:scripts",
     "start": "NODE_ENV=production HOST=0.0.0.0 PORT=3000 node dist/server/entry.mjs",
     "preview": "astro preview --port 3000",
     "init-db": "sequelize-cli db:migrate",
@@ -16,7 +16,9 @@
     "test": "vitest run",
     "eval": "npx --yes promptfoo@0.123.1 eval -c evals/promptfooconfig.yaml",
     "eval:view": "npx --yes promptfoo@0.123.1 view",
-    "admin:password": "node scripts/admin-password.mjs"
+    "admin:password": "node scripts/admin-password.mjs",
+    "build:scripts": "esbuild scripts/purge-prospects.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/scripts/purge-prospects.mjs",
+    "purge": "node dist/scripts/purge-prospects.mjs"
   },
   "dependencies": {
     "@adonisjs/hash": "^9.1.1",
@@ -69,6 +71,7 @@
     "@eslint/js": "^10.0.1",
     "@types/pg": "^8.11.11",
     "astro-eslint-parser": "^1.4.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.0.1",
     "eslint-plugin-astro": "^1.7.0",
     "eslint-plugin-vue": "^10.11.1",

@@ -3,16 +3,20 @@ import db from "~/server/utils/db";
 
 export interface ProspectInterface {
     id: number;
-    email: string;
+    // null une fois effacée (30 jours après la demande, sans accord)
+    email: string | null;
     newsletterConsent: boolean;
     consentAt: Date | null;
+    // Dernier contact volontaire (demande d'extrait) : point de départ des 3 ans de conservation des abonnés
+    lastContactAt: Date | null;
 }
 
 export default class Prospect extends Model {
     public id!: number;
-    public email!: string;
+    public email!: string | null;
     public newsletterConsent!: boolean;
     public consentAt!: Date | null;
+    public lastContactAt!: Date | null;
 
     // timestamps
     public readonly createdAt!: Date;
@@ -28,7 +32,7 @@ Prospect.init(
         },
         email: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
         },
         // Accord pour recevoir les nouvelles du livre, et sa date
         newsletterConsent: {
@@ -37,6 +41,10 @@ Prospect.init(
             defaultValue: false,
         },
         consentAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
+        },
+        lastContactAt: {
             type: DataTypes.DATE,
             allowNull: true,
         },

@@ -2,6 +2,7 @@
 import LegalLayout from '../layouts/LegalLayout.astro';
 import LegalValue from '../components/LegalValue.astro';
 import {findBookConfig, findSiteConfig} from '~/server/services/publicData';
+import {PROSPECT_RETENTION_DAYS, SUBSCRIBER_RETENTION_YEARS} from '~/server/services/prospectRetention';
 
 // À changer à chaque modification du texte
 const LAST_UPDATE = '19 octobre 2026';
@@ -103,16 +104,17 @@ const contact = legal.email;
     <h3>Téléchargement de l'extrait gratuit</h3>
     <p>
         L'adresse e-mail utilisée pour demander l'extrait est conservée pendant le temps nécessaire à son envoi et à la
-        gestion d'éventuels incidents de distribution, puis supprimée lorsqu'elle n'est plus nécessaire. Si vous avez
-        également consenti à recevoir les actualités du livre, votre adresse e-mail peut être conservée séparément pour
+        gestion d'éventuels incidents de distribution, soit {PROSPECT_RETENTION_DAYS} jours après votre demande, puis
+        supprimée automatiquement. Si vous avez également consenti à recevoir les actualités du livre, votre adresse e-mail peut être conservée séparément pour
         cette finalité.
     </p>
 
     <h3>Inscription aux actualités du livre</h3>
     <p>
-        Les données sont conservées jusqu'au retrait de votre consentement ou, au maximum, pendant trois ans à compter de
-        leur collecte ou du dernier contact volontaire de votre part. L'ouverture automatique d'un e-mail ne constitue
-        pas, à elle seule, un contact volontaire.
+        Les données sont conservées jusqu'au retrait de votre consentement ou, au maximum,
+        pendant {SUBSCRIBER_RETENTION_YEARS} ans à compter de leur collecte ou du dernier contact volontaire de votre part (par
+        exemple une nouvelle demande d'extrait), puis supprimées automatiquement. L'ouverture automatique d'un e-mail ne
+        constitue pas, à elle seule, un contact volontaire.
     </p>
 
     <h3>Échanges par e-mail</h3>
@@ -123,10 +125,20 @@ const contact = legal.email;
 
     <h3>Données techniques</h3>
     <p>
-        Pour limiter les envois abusifs, votre adresse IP est gardée en mémoire 24 heures au plus, puis effacée ; elle
-        n'est pas enregistrée en base de données. Les journaux techniques générés par l'hébergeur sont conservés selon
-        ses propres durées, pour la sécurité et le bon fonctionnement du site, et ne sont pas exploités par {publisher} à
-        des fins de suivi.
+        Pour limiter les envois abusifs, une empreinte de votre adresse IP et de votre adresse e-mail est gardée en
+        mémoire 24 heures au plus, puis effacée ; elle n'est pas enregistrée en base de données.
+    </p>
+    <p>
+        Les journaux du site n'enregistrent ni votre adresse e-mail ni votre adresse IP. Les journaux techniques générés
+        par l'hébergeur sont conservés selon ses propres durées, pour la sécurité et le bon fonctionnement du site, et ne
+        sont pas exploités par {publisher} à des fins de suivi.
+    </p>
+
+    <h3>Sauvegardes</h3>
+    <p>
+        Les sauvegardes de la base de données réalisées chez l'hébergeur peuvent contenir une adresse déjà effacée du
+        site, jusqu'à l'expiration de ces sauvegardes. Elles ne sont utilisées que pour restaurer le site en cas
+        d'incident.
     </p>
 
     <h2>5. Destinataires des données</h2>
