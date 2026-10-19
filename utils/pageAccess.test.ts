@@ -26,11 +26,11 @@ describe('pageAccess', () => {
         expect(pageAccess({...base, pathname: '/admin/content/12/edit', loggedIn: true})).toBe('allow');
     });
 
-    it.each(['/book', '/poem'])('denies %s without session nor token', (pathname) => {
+    it.each(['/book'])('denies %s without session nor token', (pathname) => {
         expect(pageAccess({...base, pathname})).toBe('unauthorized');
     });
 
-    it.each(['/book', '/poem'])('denies %s with a wrong token', (pathname) => {
+    it.each(['/book'])('denies %s with a wrong token', (pathname) => {
         expect(pageAccess({...base, pathname, tokenFromQuery: 'faux'})).toBe('unauthorized');
     });
 

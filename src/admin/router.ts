@@ -24,7 +24,7 @@ export function createAdminRouter(): Router {
                     {path: 'book/settings', component: () => import('./views/book/settings.vue')},
                     {path: 'content', component: () => import('./views/content/index.vue')},
                     {path: 'content/add', component: () => import('./views/content/add.vue')},
-                    {path: 'content/:id', component: () => import('./views/content/[id]/index.vue')},
+                    {path: 'content/:id', redirect: (to) => `/content/${to.params.id}/edit`},
                     {path: 'content/:id/edit', component: () => import('./views/content/[id]/edit.vue')},
                     {path: 'import', component: () => import('./views/import/index.vue')},
                     {path: 'import/api', component: () => import('./views/import/api.vue')},

@@ -30,6 +30,9 @@
                     v-for="(paragraph, i) in dedicationParagraphs"
                     :key="'ded-' + i"
                     class="text-left">{{ paragraph }}</p>
+                <p
+                    v-if="bookStore.config.dedicationAuthor"
+                    class="mt-6 text-right italic">— {{ bookStore.config.dedicationAuthor }}</p>
 
             </BasePage>
             <BasePage v-if="bookStore.config.prefaceText">

@@ -139,14 +139,5 @@ export const useBookStore = defineStore('bookStore', {
             }
             this.configLoaded = true;
         },
-        async saveConfig(config: BookConfigState) {
-            const data = await apiFetch<BookConfigState>('/api/book-config', {
-                method: 'PUT',
-                body: config,
-            });
-            if (data) {
-                this.config = data;
-            }
-        },
     }
 });

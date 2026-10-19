@@ -100,19 +100,6 @@
                     >
                 </div>
 
-                <label
-                    for="remember-me"
-                    class="flex cursor-pointer items-center gap-2.5 text-sm"
-                >
-                    <input
-                        id="remember-me"
-                        name="remember-me"
-                        type="checkbox"
-                        class="size-[18px] accent-lilas"
-                    >
-                    Se souvenir de moi
-                </label>
-
                 <button
                     type="submit"
                     class="flex h-12 items-center justify-center gap-2 rounded-md bg-lilas text-[15px] font-semibold text-atelier-panel transition-colors duration-150 hover:bg-lilas-light focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lilas disabled:cursor-wait disabled:opacity-70"

@@ -168,12 +168,32 @@ Pour ajouter un cas : déposer le fichier dans `evals/fixtures/`, écrire le con
 
 ## Production
 
+### Avec Docker
+
+Le `Dockerfile` construit une image de production (le développement utilise `Dockerfile.dev`) :
+
+```bash
+docker build --build-arg SITE_DOMAIN=livre.exemple.fr -t livre .
+```
+
+```bash
+docker run -d -p 3000:3000 --env-file .env.production -v livre-uploads:/app/public/uploads livre
+```
+
+Au démarrage, le conteneur joue les migrations puis lance le serveur. Le volume `/app/public/uploads` garde les images envoyées depuis l'admin (photo de l'auteur, couverture) entre deux déploiements ; le serveur les sert lui-même sous `/uploads/`. Ensuite, créer le compte administrateur :
+
+```bash
+docker exec -it <conteneur> npm run admin:password -- vous@exemple.fr --disable-default
+```
+
+### Sans Docker
+
 ```bash
 npm run build
 ```
 
 ```bash
-node dist/server/entry.mjs
+npm start
 ```
 
 Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer. En production, il répond 500 tant que `SESSION_PASSWORD` (32 caractères minimum), `PDF_API_TOKEN` (16 minimum) et `DB_HOST`, `DB_NAME`, `DB_USER` ne sont pas définis.
@@ -182,15 +202,14 @@ Protections intégrées (en mémoire, valables pour une seule instance du serveu
 
 - connexion : 10 tentatives par IP et par quart d'heure ;
 - extrait gratuit : 3 demandes par IP et par heure, 1 par adresse email et par jour, 60 par heure au total ;
-- requêtes limitées à 20 Mo, images du livre à 10 Mo (JPEG ou PNG vérifiés).
-
-**Attention :** `public/uploads/` (photo de l'auteur, images du livre) n'est pas servi par le serveur Node en production (`dist/client` ne contient que les fichiers présents au build). Il faut le servir depuis le proxy ou un stockage statique. Le `Dockerfile` actuel lance le serveur de développement et n'est pas une image de production.
+- requêtes limitées à 20 Mo, images du livre à 10 Mo (JPEG ou PNG vérifiés) ;- en-têtes de sécurité sur toutes les pages (pas d'affichage en iframe, `nosniff`…), et `noindex` sur l'admin, le livre et l'API ;
+- polices servies par le site (aucune requête vers Google Fonts).
 
 ## Structure
 
 ```
 components/   Composants Vue (admin, livre, landing, ui, layout)
-src/pages/    Routes Astro : accueil, /poem, /book, /admin/*, /api/* (transmis à h3)
+src/pages/    Routes Astro : accueil, /book, /uploads/*, /admin/*, /api/* (transmis à h3)
 src/admin/    Appli Vue de l'admin (vue-router, vues, layouts)
 src/layouts/  Layout Astro de base
 src/middleware.ts  Middleware Astro (accès admin et livre)

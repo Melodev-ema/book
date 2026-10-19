@@ -29,19 +29,6 @@ export default {
                 '5xl': '3rem',
                 '6xl': '5rem',
             },
-            fontFamily: {
-                display: [
-                    'Cabinet Grotesk',
-                    'Satoshi',
-                    'ui-sans-serif',
-                    'system-ui',
-                    'sans-serif',
-                    'Apple Color Emoji',
-                    'Segoe UI Emoji',
-                    'Segoe UI Symbol',
-                    'Noto Color Emoji',
-                ],
-            },
         },
         screens: {
             'sm': '640px',

@@ -1,16 +1,26 @@
-# Dockerfile.dev
+# Image de développement (docker-compose.yml) : le code est monté en volume, serveur de dev Astro
 FROM node:22-alpine
+
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+    PUPPETEER_SKIP_DOWNLOAD=1
 
 WORKDIR /app
 
-# Copier uniquement le package.json et le lock file (si vous l'utilisez)
+# Chromium (PDF) et Pandoc (import de fichiers)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ttf-freefont \
+    libstdc++ \
+    gcompat \
+    ca-certificates \
+    pandoc-cli
+
 COPY package.json package-lock.json ./
+RUN npm ci
 
-# Installation des dépendances
-RUN npm install
+EXPOSE 3000
 
-# NE PAS copier le code source ici
-# car on va le monter en volume pour le hot reload
-
-# Commande de démarrage : mode dev
 CMD ["npm", "run", "dev"]

@@ -10,7 +10,7 @@ export interface PageAccessContext {
 }
 
 // Pages lisibles sans session avec le jeton du PDF (/book?token=…)
-const BOOK_PAGES = ['/book', '/poem'];
+const BOOK_PAGES = ['/book'];
 
 function matches(pathname: string, prefix: string): boolean {
     return pathname === prefix || pathname.startsWith(`${prefix}/`);
