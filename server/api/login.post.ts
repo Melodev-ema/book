@@ -43,7 +43,7 @@ export default defineEventHandler(async (event) => {
 
     if (plain && valid) {
         attempts.reset(ip);
-        await setUserSession(event, {id: plain.id, email: plain.email, role: plain.role});
+        await setUserSession(event, {id: plain.id, email: plain.email, role: plain.role}, plain.password);
         return {};
     }
 

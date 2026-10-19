@@ -1,7 +1,10 @@
-import {beforeAll, describe, expect, it} from 'vitest';
+import {beforeAll, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createApp, defineEventHandler, toWebHandler} from 'h3';
+import User from '~/server/models/user';
 
 process.env.SESSION_PASSWORD = 'a'.repeat(32);
+
+vi.mock('~/server/models/user', () => ({UserRole: {ADMIN: 'admin'}, default: {findOne: vi.fn()}}));
 
 const {getSessionUserFromRequest, requireUserSession, setUserSession, getUserSession, clearUserSession} = await import('./session');
 
@@ -9,7 +12,7 @@ const user = {id: 1, email: 'a@b.c', role: 'admin'};
 
 const app = createApp();
 app.use('/login', defineEventHandler(async (event) => {
-    await setUserSession(event, user);
+    await setUserSession(event, user, 'hash-1');
     return {};
 }));
 app.use('/me', defineEventHandler(async (event) => getUserSession(event)));
@@ -32,6 +35,32 @@ beforeAll(async () => {
 });
 
 describe('session', () => {
+    // Par défaut, le compte est actif avec le même mot de passe
+    beforeEach(() => {
+        vi.mocked(User.findOne).mockResolvedValue({password: 'hash-1'} as never);
+    });
+
+    it('refuse la session d\'un compte désactivé ou supprimé', async () => {
+        vi.mocked(User.findOne).mockResolvedValue(null);
+        const response = await handler(new Request('http://x/require', {headers: {cookie}}));
+        expect(response.status).toBe(401);
+    });
+
+    it('refuse la session après un changement de mot de passe', async () => {
+        vi.mocked(User.findOne).mockResolvedValue({password: 'hash-2'} as never);
+        expect(await getSessionUserFromRequest(new Request('http://x/', {headers: {cookie}}))).toBeNull();
+    });
+
+    it('ne relit le compte qu\'une fois par requête', async () => {
+        vi.mocked(User.findOne).mockClear();
+        const twice = createApp().use(defineEventHandler(async (event) => {
+            await requireUserSession(event);
+            return requireUserSession(event);
+        }));
+        expect((await toWebHandler(twice)(new Request('http://x/', {headers: {cookie}}))).status).toBe(200);
+        expect(User.findOne).toHaveBeenCalledTimes(1);
+    });
+
     it('renvoie null sans cookie', async () => {
         expect(await getSessionUserFromRequest(new Request('http://x/'))).toBeNull();
     });

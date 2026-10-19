@@ -19,7 +19,8 @@ vi.mock('~/server/models/apiToken', () => ({default: {findOne: vi.fn(async () =>
 vi.mock('~/server/models/siteConfig', () => ({default: {findOne: vi.fn(async () => null)}}));
 vi.mock('~/server/models/bookConfig', () => ({default: {findOne: vi.fn(async () => null)}}));
 vi.mock('~/server/models/prospect', () => ({default: {create: vi.fn()}}));
-vi.mock('~/server/models/user', () => ({default: {findOne: vi.fn(async () => null)}}));
+// Le compte de la session de test : actif, mot de passe inchangé
+vi.mock('~/server/models/user', () => ({UserRole: {ADMIN: 'admin'}, default: {findOne: vi.fn(async () => ({password: 'hash-test'}))}}));
 vi.mock('~/server/models/attachment', () => ({
     default: {
         findOne: vi.fn(async () => null),
@@ -44,7 +45,7 @@ const {apiWebHandler} = await import('./app');
 // Fabrique un cookie de session valide avec une mini app h3
 const loginApp = createApp();
 loginApp.use(defineEventHandler(async (event) => {
-    await setUserSession(event, {id: 1, email: 'a@b.c', role: 'admin'});
+    await setUserSession(event, {id: 1, email: 'a@b.c', role: 'admin'}, 'hash-test');
     return {};
 }));
 
@@ -118,4 +119,5 @@ describe('application h3 de l\'API', () => {
     it('POST /api/import/image refuse un emplacement inconnu', async () => {
         expect((await uploadImage(PNG, 'a.png', '../evil')).status).toBe(400);
     });
+
 });

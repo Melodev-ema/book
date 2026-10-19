@@ -43,7 +43,7 @@ describe('POST /api/login', () => {
 
         await login('10.0.0.1');
 
-        expect(setUserSession).toHaveBeenCalledWith(expect.anything(), {id: 4, email: 'a@b.fr', role: 'admin'});
+        expect(setUserSession).toHaveBeenCalledWith(expect.anything(), {id: 4, email: 'a@b.fr', role: 'admin'}, '$scrypt$hash');
     });
 
     it('répond pareil pour un email inconnu et un mauvais mot de passe', async () => {
