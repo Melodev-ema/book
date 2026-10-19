@@ -163,6 +163,12 @@ function mergeLink(value: unknown, fallback: LandingContent['author']['link']): 
     return {label: str(value.label, '').trim() || href, href};
 }
 
+// Offres qu'on peut vraiment acheter : sans lien d'achat (« # » par défaut), une offre n'est pas affichée.
+// Tant qu'aucune ne l'est, la section « Obtenir le livre » et les prix disparaissent de la landing et du mail.
+export function purchasableOffers(offers: LandingOffer[]): LandingOffer[] {
+    return offers.filter(offer => /^https?:\/\//i.test(offer.href.trim()));
+}
+
 // Fusionne un contenu enregistré (éventuellement partiel ou ancien) avec les valeurs par défaut.
 // Seuls l'en-tête, l'auteur (photo comprise) et le pied de page sont configurables ;
 // le reste (sommaire, extrait gratuit, offres, avis) garde toujours la valeur par défaut.
@@ -172,6 +178,7 @@ export function mergeLandingContent(stored: Loose | unknown, defaults: LandingCo
 
     return {
         ...defaults,
+        pricing: {...defaults.pricing, offers: purchasableOffers(defaults.pricing.offers)},
         genre: str(data.genre, defaults.genre),
         pagesLabel: str(data.pagesLabel, defaults.pagesLabel),
         pitch: str(data.pitch, defaults.pitch),

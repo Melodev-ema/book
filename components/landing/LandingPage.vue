@@ -15,6 +15,7 @@
                 :cover-url="coverImage?.url"
                 :cover-alt="coverImage?.name"
                 :min-price="minPrice"
+                :can-buy="hasOffers"
             />
             <LandingTestimonial
                 v-if="content.testimonial"
@@ -46,6 +47,7 @@
                 :link="content.author.link"
             />
             <BookPricing
+                v-if="hasOffers"
                 :number="sectionNumber('livre')"
                 :heading="content.pricing.heading"
                 :heading-emphasis="content.pricing.headingEmphasis"
@@ -90,13 +92,15 @@ const tocHiddenCount = computed(() => props.data.toc?.hiddenCount ?? 0);
 const bookTitle = computed(() => bookStore.config.title || 'Le livre');
 const bookAuthor = computed(() => bookStore.config.author || '');
 const coverImage = computed(() => bookStore.getImagePageByType('cover'));
-const minPrice = computed(() => Math.min(...content.value.pricing.offers.map(offer => offer.price)));
+// Offres sans lien d'achat configuré : déjà retirées par le serveur (purchasableOffers)
+const hasOffers = computed(() => content.value.pricing.offers.length > 0);
+const minPrice = computed(() => hasOffers.value ? Math.min(...content.value.pricing.offers.map(offer => offer.price)) : undefined);
 
 const sections = computed(() => [
     ...(tocParts.value.length ? [{id: 'sommaire', label: 'Sommaire'}] : []),
     {id: 'extrait', label: 'Extrait gratuit'},
     {id: 'auteur', label: content.value.author.label},
-    {id: 'livre', label: 'Obtenir le livre'},
+    ...(hasOffers.value ? [{id: 'livre', label: 'Obtenir le livre'}] : []),
 ]);
 
 // Numéros « 01 », « 02 »… : ils suivent les sections affichées (le sommaire peut être masqué)
