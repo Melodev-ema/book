@@ -120,4 +120,10 @@ describe('application h3 de l\'API', () => {
         expect((await uploadImage(PNG, 'a.png', '../evil')).status).toBe(400);
     });
 
+    it('POST /api/site-portrait refuse un fichier qui n\'est pas une image', async () => {
+        const form = new FormData();
+        form.append('file', new File([new Uint8Array([0x3c, 0x68, 0x74, 0x6d])], 'portrait.png', {type: 'image/png'}));
+        const response = await apiWebHandler(new Request('http://x/api/site-portrait', {method: 'POST', headers: {cookie}, body: form}));
+        expect(response.status).toBe(400);
+    });
 });

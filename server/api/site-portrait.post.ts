@@ -4,11 +4,7 @@ import fs from 'fs/promises';
 import {join} from 'node:path';
 import SiteConfig from "~/server/models/siteConfig";
 import {mergeLandingContent} from "~/utils/landingContent";
-
-const EXTENSIONS: Record<string, string> = {
-    'image/jpeg': 'jpg',
-    'image/png': 'png',
-};
+import {checkImageUpload} from "~/server/services/uploads";
 
 // Envoie la photo de l'auteur : le fichier va dans public/uploads, son chemin est enregistré dans SiteConfigs.
 export default defineEventHandler(async (event) => {
@@ -21,10 +17,7 @@ export default defineEventHandler(async (event) => {
         throw createError({statusCode: 400, statusMessage: 'No file uploaded'});
     }
 
-    const extension = EXTENSIONS[file.type || ''];
-    if (!extension) {
-        throw createError({statusCode: 400, statusMessage: 'Invalid file type'});
-    }
+    const extension = checkImageUpload(file);
 
     // Nom unique : évite d'écraser un autre fichier et contourne le cache du navigateur.
     const url = `/uploads/author-portrait-${Date.now()}.${extension}`;
