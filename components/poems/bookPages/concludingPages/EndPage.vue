@@ -4,7 +4,7 @@
         <img
             class="absolute inset-0 w-full h-full object-cover"
             :src="endPage?.url"
-            :alt="endPage?.name"
+            alt=""
         >
     </div>
 </template>

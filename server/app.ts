@@ -10,7 +10,6 @@ import apiTokenPut from './api/config/api-token.put';
 import apiTokenDelete from './api/config/api-token.delete';
 import generatePdf from './api/generate-pdf';
 import imageGet from './api/image.get';
-import importPost from './api/import/index.post';
 import importImagePost from './api/import/image/index.post';
 import importQueueGet from './api/import/queue/index.get';
 import importQueuePost from './api/import/queue/index.post';
@@ -52,7 +51,6 @@ export function createApiApp(): App {
     router.delete('/api/config/api-token', apiTokenDelete);
     router.post('/api/generate-pdf', generatePdf);
     router.get('/api/image', imageGet);
-    router.post('/api/import', importPost);
     router.post('/api/import/image', importImagePost);
     router.get('/api/import/queue', importQueueGet);
     router.post('/api/import/queue', importQueuePost);

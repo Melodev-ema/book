@@ -1,5 +1,5 @@
 <template>
-    <dl class="grid grid-cols-1 border-t border-atelier-ink/80 sm:grid-cols-2 lg:grid-cols-4">
+    <dl class="grid grid-cols-1 border-t border-atelier-ink/80 sm:grid-cols-2">
         <div
             v-for="(stat, key) in stats"
             :key="key"
@@ -19,11 +19,16 @@
 <script setup lang="ts">
 import {onMounted, ref} from 'vue';
 import {apiTry} from '~/utils/api';
+import {toast} from '~/utils/toast';
 
 const stats = ref<Record<string, {name: string; value: number}> | null>(null);
 
 onMounted(async () => {
-    const {data} = await apiTry<typeof stats.value>('/api/stats');
+    const {data, error} = await apiTry<typeof stats.value>('/api/stats');
+    if (error) {
+        toast.error('Impossible de charger les statistiques');
+        return;
+    }
     stats.value = data;
 });
 </script>

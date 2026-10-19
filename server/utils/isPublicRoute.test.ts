@@ -43,7 +43,6 @@ describe('isPublicRoute', () => {
         ['GET', '/api/stats'],
         ['POST', '/api/generate-pdf'],
         ['GET', '/api/config/api-token'],
-        ['POST', '/api/import'],
         ['GET', '/api/import/queue'],
     ])('requires a session for %s %s', (method, path) => {
         expect(isPublicRoute(method, path)).toBe(false);

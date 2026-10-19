@@ -9,7 +9,7 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 - **Génération du livre** : rendu HTML paginé (`/book`) converti en PDF par Puppeteer, avec plusieurs formats d'impression (poche, A5, A4, carré, etc.).
 - **Administration** (`/admin`) : gestion des contenus avec éditeur riche (TipTap), statistiques, configuration du livre.
 - **Import de contenus** :
-  - fichiers `.json`, `.txt`, `.md`, `.html`, `.csv`, `.odt`, `.doc`. Les fichiers texte passent par Pandoc, puis par une IA qui extrait titre, auteur, date et contenu ;
+  - fichiers `.json`, `.txt`, `.md`, `.html`, `.csv`, `.odt`, `.docx`. Les fichiers texte passent par Pandoc, puis par une IA qui extrait titre, auteur, date et contenu ;
   - flux RSS/Atom (extraction des articles) ;
   - API REST `/api/v1/post` authentifiée par token.
 - **Prospects** : formulaire de la page d'accueil qui enregistre l'email et envoie un extrait du livre en PDF.
@@ -123,7 +123,7 @@ Le mot de passe (12 caractères minimum) est demandé sans écho. `--disable-def
 
 Depuis `/admin/import` :
 
-- **Fichiers** : les fichiers `.json` sont importés directement ; les autres formats sont convertis en texte par Pandoc, nettoyés, puis envoyés à l'IA qui renvoie un contenu structuré. Les imports passent par une file de traitement en mémoire, dont le statut est visible dans l'interface.
+- **Fichiers** (5 Mo maximum chacun) : les fichiers `.json` (un texte `{postTitle, author, content, publishDate}` ou un tableau de textes) sont importés directement ; les autres formats sont convertis en texte par Pandoc, nettoyés, puis envoyés à l'IA qui renvoie un contenu structuré. Les imports passent par une file de traitement en mémoire, dont le statut est visible dans l'interface.
 - **Flux RSS** : le contenu complet de chaque article du flux est extrait. Chaque article reçoit un identifiant externe unique, ce qui empêche de l'importer deux fois.
 - **API** : créer un token dans l'onglet API (5 tokens actifs maximum), puis :
 
@@ -153,7 +153,7 @@ npm test
 npm run lint
 ```
 
-La CI GitHub Actions (`.github/workflows/ci.yml`) lance `npm ci`, le lint, les tests et le build à chaque push sur `main` et `dev`, ainsi que sur chaque pull request.
+La CI GitHub Actions (`.github/workflows/ci.yml`) lance `npm ci`, le lint, la vérification des types (`npm run check`), les tests et le build à chaque push sur `main` et `dev`, ainsi que sur chaque pull request.
 
 ### Qualité de l'import de fichiers (promptfoo)
 

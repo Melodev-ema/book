@@ -49,7 +49,7 @@ import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import type {PostInterface} from "~/server/models/post";
 import PostEntity from "~/entities/PostEntity";
 import type {PostEntityInterface} from "~/entities/PostEntity";
-import {apiFetch} from "~/utils/api";
+import {apiFetch, apiTry} from "~/utils/api";
 import {toast} from "~/utils/toast";
 
 export default defineComponent({
@@ -99,33 +99,34 @@ export default defineComponent({
             await this.getPosts();
         },
         async getPosts() {
-            await fetch(`/api/post?limit=${this.limit}&page=${this.page}`)
-                .then(response => response.json())
-                .then(data => {
-                    this.totalRecords = data.count;
-                    this.posts = data.rows.map((post: PostInterface) => {
-                        const postEntity = PostEntity.hydrateFromDatabase(post);
-                        const actions = [
-                            {
-                                title: 'Modifier',
-                                type: 'link',
-                                actionType: 'edit',
-                                action: `/content/${postEntity.id}/edit`,
-                            },
-                            {
-                                title: 'Supprimer',
-                                type: 'emit',
-                                actionType: 'delete',
-                                action: 'delete',
-                            },
-                        ];
+            const {data, error} = await apiTry<{count: number; rows: PostInterface[]}>('/api/post', {query: {limit: this.limit, page: this.page}});
+            if (error || !data) {
+                toast.error('Impossible de charger les contenus');
+                return;
+            }
+            this.totalRecords = data.count;
+            this.posts = data.rows.map((post: PostInterface) => {
+                const postEntity = PostEntity.hydrateFromDatabase(post);
+                const actions = [
+                    {
+                        title: 'Modifier',
+                        type: 'link',
+                        actionType: 'edit',
+                        action: `/content/${postEntity.id}/edit`,
+                    },
+                    {
+                        title: 'Supprimer',
+                        type: 'emit',
+                        actionType: 'delete',
+                        action: 'delete',
+                    },
+                ];
 
-                        return {
-                            ...postEntity,
-                            actions,
-                        };
-                    });
-                });
+                return {
+                    ...postEntity,
+                    actions,
+                };
+            });
         },
         async doAction({action, row}: {action: string, row: PostEntityInterface}) {
             if (action === 'delete') {

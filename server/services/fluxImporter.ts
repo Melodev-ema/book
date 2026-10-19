@@ -17,6 +17,9 @@ export class FluxImporter {
 
     public async import() {
         const url = this._url;
+        if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+            throw createError({statusCode: 400, statusMessage: 'Adresse du flux invalide'});
+        }
 
         const feed = await FeedExtractor(url);
         if (!feed || !feed.entries) {
@@ -28,15 +31,24 @@ export class FluxImporter {
 
         const contents: PostInterface[] = [];
         for (const item of feed.entries) {
-            if (item.link && item.id) {
+            if (!item.link || !item.id) {
+                continue;
+            }
 
-                const {title, content, author, published} = await ArticleExtractor(item.link);
-                if (!title || !content || !author || !item.id || !published) {
+            const slug = slugify(item.id, {lower: true, strict: true});
+            const externalId = createHash('md5').update(slug).digest('hex');
+            // Déjà importé lors d'un import précédent du même flux
+            if (await Post.findOne({where: {externalId}})) {
+                continue;
+            }
+
+            // Un article illisible ou invalide est passé, sans arrêter l'import des autres
+            try {
+                const article = await ArticleExtractor(item.link);
+                const {title, content, author, published} = article ?? {};
+                if (!title || !content || !author || !published) {
                     continue;
                 }
-
-                const slug = slugify(item.id, {lower: true, strict: true});
-                const externalId = createHash('md5').update(slug).digest('hex');
 
                 const window = new JSDOM('').window;
                 const purify = DOMPurify(window);
@@ -45,22 +57,16 @@ export class FluxImporter {
                     ALLOWED_ATTR: ['src', 'alt', 'title']
                 });
 
-                try {
-                    const post = await Post.create({
-                        postTitle: title,
-                        author: author,
-                        content: sanitizedContent,
-                        externalId: externalId,
-                        publishDate: new Date(published),
-                    });
-                    contents.push(post);
-                } catch (error) {
-                    throw createError({
-                        statusCode: 500,
-                        statusMessage: error instanceof Error ? error.message : String(error)
-                    });
-                }
-
+                const post = await Post.create({
+                    postTitle: title,
+                    author: author,
+                    content: sanitizedContent,
+                    externalId: externalId,
+                    publishDate: new Date(published),
+                });
+                contents.push(post);
+            } catch (error) {
+                console.error(`flux: article ignoré (${item.link})`, error);
             }
         }
 

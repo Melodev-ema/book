@@ -4,6 +4,7 @@
         <template #buttons>
             <BaseButton
                 :loading="saving"
+                :disabled="!loaded"
                 @click="save"
             >
                 Enregistrer
@@ -175,7 +176,7 @@ import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import ImportImage from "~/components/admin/book/ImportImage.vue";
 import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import type {FileEntityInterface} from "~/entities/FileEntity";
-import {apiFetch} from "~/utils/api";
+import {apiFetch, apiTry} from "~/utils/api";
 import {landingContent, type LandingContent} from "~/utils/landingContent";
 import {toast} from "~/utils/toast";
 
@@ -199,6 +200,8 @@ export default defineComponent({
     data() {
         return {
             saving: false,
+            // Tant que la config n'est pas chargée, l'enregistrer écraserait la vraie par les valeurs par défaut
+            loaded: false,
             showPortraitDrawer: false,
             portraitUrl: null as string | null,
             labelClass: 'text-[13px] text-atelier-muted',
@@ -225,7 +228,12 @@ export default defineComponent({
     },
     methods: {
         async fetchConfig() {
-            const data = await apiFetch<LandingContent>('/api/site-config');
+            const {data, error} = await apiTry<LandingContent>('/api/site-config');
+            if (error) {
+                toast.error('Impossible de charger la configuration : rechargez la page avant de la modifier');
+                return;
+            }
+            this.loaded = true;
             if (data) {
                 this.form = toForm(data);
                 this.portraitUrl = data.author.portraitUrl;
@@ -247,6 +255,9 @@ export default defineComponent({
             };
         },
         async save() {
+            if (!this.loaded || this.saving) {
+                return;
+            }
             this.saving = true;
             try {
                 const data = await apiFetch<LandingContent>('/api/site-config', {

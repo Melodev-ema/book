@@ -51,6 +51,9 @@ export async function apiFetch<T>(url: string, opts: ApiOptions = {}): Promise<T
 
     if (!res.ok) {
         const data = isJson ? await res.json().catch(() => null) : null;
+        if (res.status === 401) {
+            redirectToLoginIfAdmin();
+        }
         throw new ApiError(res.status, data);
     }
 
@@ -60,6 +63,14 @@ export async function apiFetch<T>(url: string, opts: ApiOptions = {}): Promise<T
     }
 
     return (isJson ? await res.json() : await res.blob()) as T;
+}
+
+// Session expirée pendant qu'on utilise l'admin : retour à l'écran de connexion
+function redirectToLoginIfAdmin() {
+    const {pathname} = window.location ?? {};
+    if (pathname?.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+        window.location.assign('/admin/login');
+    }
 }
 
 export async function apiTry<T>(url: string, opts: ApiOptions = {}): Promise<{data: T | null; error: ApiError | null}> {

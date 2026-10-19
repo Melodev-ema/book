@@ -22,14 +22,10 @@ export default defineEventHandler(async (event) => {
     const postAuthor = sanitizeContent(body.author);
     const postContent = sanitizeContent(body.content);
     const postPublishDate = new Date(body.publishDate);
-    try {
-        return await Post.create({
-            postTitle: postTitle,
-            author: postAuthor,
-            content: postContent,
-            publishDate: postPublishDate,
-        });
-    } catch (error) {
-        return error;
-    }
+    return await Post.create({
+        postTitle: postTitle,
+        author: postAuthor,
+        content: postContent,
+        publishDate: postPublishDate,
+    });
 });

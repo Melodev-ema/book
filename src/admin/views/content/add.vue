@@ -13,6 +13,7 @@
             </RouterLink>
         </template>
         <BaseForm
+            :loading="submitting"
             @cancel="cancel"
             @submit="submit"
         >
@@ -21,6 +22,11 @@
                 name="postTitle"
                 label="Titre"
                 serif
+            />
+            <BaseInput
+                v-model="post.author"
+                name="author"
+                label="Auteur"
             />
             <TextEditor
                 v-model="post.content"
@@ -40,26 +46,43 @@ import TextEditor from "~/components/ui/form/TextEditor.vue";
 import {ArrowLeftIcon} from "@heroicons/vue/24/outline";
 import {apiTry} from "~/utils/api";
 import {toast} from "~/utils/toast";
+import {missingPostField} from "~/utils/postForm";
 
 export default defineComponent({
     components: {AdminPage, TextEditor, BaseForm, BaseInput, ArrowLeftIcon},
     data() {
         return {
             post: PostEntity.create() as PostEntityInterface,
+            submitting: false,
         };
+    },
+    async mounted() {
+        // Par défaut, l'auteur du livre (sinon la signature serait « le 1er mars… » sans nom)
+        const {data} = await apiTry<{author?: string}>('/api/book-config');
+        if (data?.author && !this.post.author) {
+            this.post.author = data.author;
+        }
     },
     methods: {
         async cancel() {
             await this.$router.push('/content');
         },
         async submit() {
+            const missing = missingPostField(this.post);
+            if (missing) {
+                toast.error(missing);
+                return;
+            }
+
+            this.submitting = true;
             const {error} = await apiTry('/api/post', {
                 method: 'POST',
                 body: this.post,
             });
+            this.submitting = false;
 
             if (error) {
-                toast.error('Erreur lors de la création du contenu');
+                toast.error('Erreur lors de la création du contenu', {description: error.message});
                 return;
             }
 

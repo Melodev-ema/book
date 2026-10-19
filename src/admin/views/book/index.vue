@@ -80,7 +80,8 @@ import EditRoundButton from "~/components/ui/buttons/EditRoundButton.vue";
 import ImportImage from "~/components/admin/book/ImportImage.vue";
 import AdminNavTabs from "~/components/admin/ui/AdminNavTabs.vue";
 import AdminPage from "~/components/admin/ui/AdminPage.vue";
-import {apiFetch, apiTry} from "~/utils/api";
+import {ApiError, apiFetch, apiTry} from "~/utils/api";
+import {groupByPart, type BookPart} from "~/utils/bookToc";
 import {toast} from "~/utils/toast";
 
 export default defineComponent({
@@ -101,20 +102,22 @@ export default defineComponent({
                 {name: 'Configuration', route: '/book/settings', current: false},
             ],
             images: [] as AttachmentEntityInterface[],
-            posts: [] as PostEntityInterface[],
-            totalRecords: 0,
-            loaded: false,
-            count: 1,
+            // Tous les textes, dans l'ordre du livre (parties et positions)
+            bookPosts: [] as PostEntityInterface[],
             page: 1,
             limit: 1,
-            filters: {
-                year: null
-            },
+            savingImage: false,
             showModalPage: false,
             modalPageType: null as string | null,
         };
     },
     computed: {
+        posts(): PostEntityInterface[] {
+            return this.bookPosts.slice((this.page - 1) * this.limit, this.page * this.limit);
+        },
+        totalRecords(): number {
+            return this.bookPosts.length;
+        },
         coverPage(): AttachmentEntityInterface | null {
             return this.images.find(image => image.pageType === 'cover') || null;
         },
@@ -133,23 +136,20 @@ export default defineComponent({
         await this.getImages();
     },
     methods: {
-        async setPage(page: number) {
+        setPage(page: number) {
             this.page = page;
-            await this.getPosts();
         },
         async getPosts() {
-            await fetch(`/api/post?limit=${this.limit}&page=${this.page}`)
-                .then(response => response.json())
-                .then(data => {
-                    this.totalRecords = data.count;
-                    this.posts = data.rows.map((post: PostInterface) => {
-                        const postEntity = PostEntity.hydrateFromDatabase(post);
-
-                        return {
-                            ...postEntity,
-                        };
-                    });
-                });
+            const [posts, parts] = await Promise.all([
+                apiTry<{rows: PostInterface[]}>('/api/post', {query: {limit: 'all'}}),
+                apiTry<BookPart[]>('/api/part'),
+            ]);
+            if (!posts.data || !parts.data) {
+                toast.error('Impossible de charger le livre');
+                return;
+            }
+            const entities = posts.data.rows.map((post: PostInterface) => PostEntity.hydrateFromDatabase(post));
+            this.bookPosts = groupByPart(entities, parts.data).flatMap(section => section.posts);
         },
         async getImages() {
             const {data, error} = await apiTry<AttachmentEntityInterface[]>('/api/image');
@@ -166,22 +166,32 @@ export default defineComponent({
             return this.images.find(image => image.pageType === type) || null;
         },
         saveFiles(files: File[], pageType: string) {
+            if (this.savingImage) {
+                return;
+            }
             const entity = files[0];
             const file = entity.file as File;
             const formData = new FormData();
             formData.append('file', file, file.name);
             formData.append('data', pageType);
+            this.savingImage = true;
             apiFetch<AttachmentEntityInterface[]>('/api/import/image', {
                 method: 'POST',
                 body: formData
             })
                 .then(data => {
                     this.images = data;
+                    this.showModalPage = false;
 
                     toast.success('L\'image a été enregistrée avec succès');
                 })
-                .catch(() => {
-                    toast.error('Erreur lors de l\'enregistrement de l\'image');
+                .catch((error) => {
+                    toast.error(error instanceof ApiError && error.status === 413
+                        ? 'Image trop lourde (10 Mo maximum)'
+                        : 'Erreur lors de l\'enregistrement de l\'image');
+                })
+                .finally(() => {
+                    this.savingImage = false;
                 });
 
         },

@@ -176,7 +176,7 @@ export default defineComponent({
                 'text/html': 'HTML',
                 'text/markdown': 'Markdown',
                 'application/vnd.oasis.opendocument.text': 'ODT',
-                'application/msword': 'Word',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
                 'image/jpeg': 'JPG',
                 'image/png': 'PNG',
             };

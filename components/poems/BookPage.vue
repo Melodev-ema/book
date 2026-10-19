@@ -11,7 +11,8 @@
             class="flex flex-col items-center w-full book"
             :class="[bookStore.bookCssClass, {excerpt: isExcerpt}]"
             :data-book-texts="posts.length">
-            <CoverPage/>
+            <!-- Sans image, pas de page blanche -->
+            <CoverPage v-if="bookStore.getImagePageByType('cover')"/>
             <BasePage>
                 <!--            Page de faux-titre : Contient simplement le titre du recueil ou une citation évocatrice.-->
                 <h1 class="title">{{ bookStore.config.title }}</h1>
@@ -82,7 +83,7 @@
             <ExcerptEndPage
                 v-if="isExcerpt"
                 :remaining="excerptRemaining"/>
-            <EndPage v-else/>
+            <EndPage v-else-if="bookStore.getImagePageByType('back_cover')"/>
         </div>
     </FragmentContainer>
 </template>

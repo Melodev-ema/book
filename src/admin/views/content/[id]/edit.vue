@@ -12,8 +12,15 @@
                 Retour aux contenus
             </RouterLink>
         </template>
+        <p
+            v-if="notFound"
+            class="py-16 text-center text-atelier-muted"
+        >
+            Ce texte n'existe pas ou a été supprimé.
+        </p>
         <BaseForm
             v-if="post"
+            :loading="submitting"
             @cancel="cancel"
             @submit="submit"
         >
@@ -22,6 +29,11 @@
                 name="postTitle"
                 label="Titre"
                 serif
+            />
+            <BaseInput
+                v-model="post.author"
+                name="author"
+                label="Auteur"
             />
             <TextEditor
                 v-model="post.content"
@@ -42,12 +54,15 @@ import TextEditor from "~/components/ui/form/TextEditor.vue";
 import {ArrowLeftIcon} from "@heroicons/vue/24/outline";
 import {apiTry} from "~/utils/api";
 import {toast} from "~/utils/toast";
+import {missingPostField} from "~/utils/postForm";
 
 export default defineComponent({
     components: {AdminPage, TextEditor, BaseForm, BaseInput, ArrowLeftIcon},
     data() {
         return {
             post: null as PostEntityInterface | null,
+            notFound: false,
+            submitting: false,
         };
     },
     computed: {
@@ -57,6 +72,10 @@ export default defineComponent({
     },
     async mounted() {
         const {data, error} = await apiTry<PostEntityInterface>(`/api/post/${this.id}`);
+        if (error?.status === 404) {
+            this.notFound = true;
+            return;
+        }
         if (error) {
             toast.error('Erreur lors de la récupération du contenu');
             return;
@@ -68,13 +87,24 @@ export default defineComponent({
             await this.$router.push('/content');
         },
         async submit() {
+            if (!this.post) {
+                return;
+            }
+            const missing = missingPostField(this.post);
+            if (missing) {
+                toast.error(missing);
+                return;
+            }
+
+            this.submitting = true;
             const {error} = await apiTry('/api/post', {
                 method: 'POST',
                 body: this.post,
             });
+            this.submitting = false;
 
             if (error) {
-                toast.error('Erreur lors de la modification du contenu');
+                toast.error('Erreur lors de la modification du contenu', {description: error.message});
                 return;
             }
 

@@ -19,9 +19,9 @@
                 <BaseDropzone
                     v-model:files="files"
                     label="Fichiers à importer"
-                    :max-size="1024 * 50"
+                    :max-size="maxSize"
                     :max-files="20"
-                    :accept="['application/json', 'text/csv', 'text/plain', 'text/html', 'text/markdown', 'application/vnd.oasis.opendocument.text', 'application/msword']"
+                    :accept="acceptedTypes"
                 />
                 <div class="flex items-center justify-end gap-2">
                     <CancelButton
@@ -156,6 +156,7 @@ import {ClockIcon, CheckCircleIcon, ExclamationCircleIcon, ArrowPathIcon} from "
 import type {ImportJob} from "~/server/services/importQueue";
 import {apiFetch} from "~/utils/api";
 import {toast} from "~/utils/toast";
+import {IMPORT_FILE_TYPES, IMPORT_MAX_SIZE} from "~/utils/importFileTypes";
 
 export default defineComponent({
     name: "PoemImportForm",
@@ -171,6 +172,8 @@ export default defineComponent({
     data() {
         return {
             files: [] as FileEntity[],
+            acceptedTypes: IMPORT_FILE_TYPES,
+            maxSize: IMPORT_MAX_SIZE,
             queue: [] as ImportJob[],
             submitting: false,
             pollingTimer: null as ReturnType<typeof setInterval> | null,
@@ -228,15 +231,18 @@ export default defineComponent({
                 formData.append('file' + file.id, file.file);
             }
 
-            this.files = [];
-
             try {
-                const response = await apiFetch<{ jobs: ImportJob[] }>('/api/import/queue', {
+                const response = await apiFetch<{ jobs: ImportJob[]; skipped: string[] }>('/api/import/queue', {
                     method: 'POST',
                     body: formData,
                 });
 
+                // Vidés seulement une fois envoyés : en cas d'échec, on peut réessayer
+                this.files = [];
                 this.queue = response.jobs;
+                if (response.skipped.length > 0) {
+                    toast.warning(`Fichier${response.skipped.length > 1 ? 's' : ''} ignoré${response.skipped.length > 1 ? 's' : ''} (format ou taille) : ${response.skipped.join(', ')}`);
+                }
                 this.startPolling();
             } catch {
                 toast.error('Erreur lors de la soumission des fichiers');

@@ -4,6 +4,7 @@
         <template #buttons>
             <BaseButton
                 :loading="saving"
+                :disabled="!loaded"
                 @click="save"
             >
                 Enregistrer
@@ -261,7 +262,7 @@ import AdminNavTabs from "~/components/admin/ui/AdminNavTabs.vue";
 import AdminPage from "~/components/admin/ui/AdminPage.vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 import {PAGE_FORMAT_LIMITS, PAGE_FORMAT_SIZES, type BookConfigState} from "~/stores/bookStore";
-import {apiFetch} from "~/utils/api";
+import {apiFetch, apiTry} from "~/utils/api";
 import {landingTocLimit} from "~/utils/bookToc";
 import {toast} from "~/utils/toast";
 
@@ -270,6 +271,8 @@ export default defineComponent({
     data() {
         return {
             saving: false,
+            // Tant que la config n'est pas chargée, l'enregistrer écraserait la vraie par les valeurs par défaut
+            loaded: false,
             labelClass: 'text-[13px] text-atelier-muted',
             fieldClass: 'h-11 w-full rounded-md border border-atelier-line-strong bg-atelier-panel px-3 text-[15px] text-atelier-ink placeholder:text-atelier-subtle focus:border-lilas focus:ring-3 focus:ring-lilas-soft focus:outline-none',
             areaClass: 'w-full resize-y rounded-md border border-atelier-line-strong bg-atelier-panel px-3 py-2.5 font-newsreader text-base leading-relaxed text-atelier-ink focus:border-lilas focus:ring-3 focus:ring-lilas-soft focus:outline-none',
@@ -341,7 +344,12 @@ export default defineComponent({
     },
     methods: {
         async fetchConfig() {
-            const data = await apiFetch<BookConfigState>('/api/book-config');
+            const {data, error} = await apiTry<BookConfigState>('/api/book-config');
+            if (error) {
+                toast.error('Impossible de charger la configuration : rechargez la page avant de la modifier');
+                return;
+            }
+            this.loaded = true;
             if (data) {
                 this.form.title = data.title || '';
                 this.form.author = data.author || '';
@@ -360,6 +368,9 @@ export default defineComponent({
             }
         },
         async save() {
+            if (!this.loaded || this.saving) {
+                return;
+            }
             this.saving = true;
             // Champ vidé ou à 0 : le formulaire affiche la valeur réellement enregistrée
             this.form.landingTocMaxParts = landingTocLimit(this.form.landingTocMaxParts);

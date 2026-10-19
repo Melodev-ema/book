@@ -8,7 +8,7 @@
                 loading ? 'cursor-not-allowed bg-opacity-75' : '',
                 sizeClass
             ]"
-        :disabled="loading"
+        :disabled="loading || disabled"
         @click="$emit('click')"
     >
         <span class="flex items-center">
@@ -37,6 +37,10 @@ export default defineComponent({
             default: false,
         },
         loading: {
+            type: Boolean,
+            default: false,
+        },
+        disabled: {
             type: Boolean,
             default: false,
         },

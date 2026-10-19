@@ -25,6 +25,28 @@ afterEach(() => {
 });
 
 describe('apiFetch', () => {
+    it('renvoie vers la connexion quand la session de l\'admin a expiré', async () => {
+        const location = {pathname: '/admin/content', assign: vi.fn()};
+        vi.stubGlobal('window', {location});
+        mockFetch(jsonResponse(401, null));
+
+        await apiFetch('/api/post').catch(() => undefined);
+
+        expect(location.assign).toHaveBeenCalledWith('/admin/login');
+    });
+
+    it('ne renvoie pas vers la connexion hors de l\'admin ni pendant la connexion', async () => {
+        const location = {pathname: '/admin/login', assign: vi.fn()};
+        vi.stubGlobal('window', {location});
+        mockFetch(jsonResponse(401, null));
+        await apiFetch('/api/login', {method: 'POST'}).catch(() => undefined);
+
+        location.pathname = '/';
+        await apiFetch('/api/prospect', {method: 'POST'}).catch(() => undefined);
+
+        expect(location.assign).not.toHaveBeenCalled();
+    });
+
     it('resolves to null on a 204 or empty body', async () => {
         mockFetch({ok: true, status: 204, headers: new Headers()});
         expect(await apiFetch('/api/x', {method: 'DELETE'})).toBeNull();
@@ -59,7 +81,7 @@ describe('apiFetch', () => {
 
     it('throws an ApiError on a non-OK response', async () => {
         mockFetch(jsonResponse(401, {message: 'no'}));
-        const error = await apiFetch('/api/x').catch((e) => e);
+        const error = await apiFetch<never>('/api/x').catch((e: ApiError) => e);
         expect(error).toBeInstanceOf(ApiError);
         expect(error.status).toBe(401);
         expect(error.data).toEqual({message: 'no'});

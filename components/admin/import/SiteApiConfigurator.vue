@@ -14,7 +14,7 @@
                 </p>
             </div>
             <BaseButton
-                v-if="tokens.length < 5"
+                v-if="tokens.length < 5 && !('new' in drafts)"
                 outlined
                 size="md"
                 @click="addToken"
@@ -37,6 +37,18 @@
             :limit="10"
             empty-label="Aucun token : ajoutez-en un pour connecter un site."
         >
+            <template #column-name="{row}">
+                <input
+                    v-if="row.isEditing"
+                    v-model="drafts[row.key]"
+                    type="text"
+                    aria-label="Nom"
+                    class="h-9 w-full rounded-md border border-atelier-line-strong bg-atelier-panel px-2.5 outline-none text-sm text-atelier-ink focus:border-lilas focus:ring-3 focus:ring-lilas-soft focus:outline-none"
+                >
+                <span
+                    v-else
+                    class="text-atelier-ink">{{ row.name }}</span>
+            </template>
             <template #column-revoked="{row}">
                 <BaseBadge
                     v-if="row.revoked"
@@ -53,14 +65,14 @@
                     Actif
                 </BaseBadge>
             </template>
-            <template #column-actions="{row, index}">
+            <template #column-actions="{row}">
                 <div class="flex justify-end gap-1.5">
                     <BaseButton
                         v-if="!row.isEditing"
                         label="Modifier"
                         outlined
                         size="sm"
-                        @click="editToken(index)"
+                        @click="editToken(row)"
                     />
                     <BaseButton
                         v-if="!row.isEditing"
@@ -68,20 +80,20 @@
                         outlined
                         severity="danger"
                         size="sm"
-                        @click="revokeToken(row, index)"
+                        @click="revokeToken(row)"
                     />
                     <BaseButton
                         v-if="row.isEditing"
                         label="Annuler"
                         outlined
                         size="sm"
-                        @click="cancelEditToken(index)"
+                        @click="cancelEditToken(row)"
                     />
                     <BaseButton
                         v-if="row.isEditing"
                         label="Enregistrer"
                         size="sm"
-                        @click="saveToken(row, index)"
+                        @click="saveToken(row)"
                     />
                 </div>
 
@@ -106,18 +118,21 @@ export default defineComponent({
     data() {
         return {
             tokens: [] as ApiTokenEntityInterface[],
-            editingTokenIds: [] as number[],
+            // Nom en cours de saisie, par token édité (clé : son id, « new » pour le token en création)
+            drafts: {} as Record<string, string>,
         };
     },
     computed: {
         rows() {
             return this.tokens
                 .filter(token => !token.revoked)
-                .map((token: ApiTokenEntityInterface, index: number) => {
+                .map((token: ApiTokenEntityInterface) => {
+                    const key = token.id === '' ? 'new' : String(token.id);
                     return {
                         ...token,
+                        key,
                         createdAt: new Date(token.createdAt),
-                        isEditing: this.editingTokenIds.includes(index),
+                        isEditing: key in this.drafts,
                     };
                 });
         },
@@ -145,26 +160,25 @@ export default defineComponent({
             }
             this.tokens = this.tokens.filter(token => token.id !== tokenUpdated.id);
         },
-        async saveToken(token: ApiTokenEntityInterface, index: number) {
-            const method = token.id === '' ? 'POST' : 'PUT';
+        async saveToken(row: ApiTokenEntityInterface & {key: string}) {
+            const isNew = row.key === 'new';
             const {data: tokenUpdated, error} = await apiTry<ApiTokenEntityInterface>('/api/config/api-token', {
-                method: method,
-                body: token,
+                method: isNew ? 'POST' : 'PUT',
+                body: isNew ? {name: this.drafts[row.key]} : {id: row.id, name: this.drafts[row.key]},
             });
 
             if (error || !tokenUpdated) {
-                toast.error('Erreur lors de la modification du token');
+                toast.error('Erreur lors de l\'enregistrement du token', {description: error?.message});
                 return;
             }
-            const findIndex = this.tokens.findIndex(token => token.id === tokenUpdated.id || token.id === '');
+            const index = this.tokens.findIndex(token => (isNew ? token.id === '' : token.id === row.id));
+            this.tokens[index] = tokenUpdated;
+            delete this.drafts[row.key];
 
-            this.tokens[findIndex] = tokenUpdated;
-            this.editingTokenIds = this.editingTokenIds.filter(id => id !== index);
-
-            toast.success('Le token a été modifié avec succès');
+            toast.success(isNew ? 'Le token a été créé' : 'Le token a été modifié avec succès');
         },
-        editToken(index: number) {
-            this.editingTokenIds.push(index);
+        editToken(row: ApiTokenEntityInterface & {key: string}) {
+            this.drafts[row.key] = row.name;
         },
         addToken() {
             this.tokens.unshift({
@@ -175,12 +189,13 @@ export default defineComponent({
                 revoked: false,
                 revokedAt: null,
             } as ApiTokenEntityInterface);
-            this.editingTokenIds.unshift(0);
+            this.drafts.new = '';
         },
-        cancelEditToken(index: number) {
-            this.editingTokenIds = this.editingTokenIds.filter(id => id !== index);
-            this.tokens = this.tokens.filter(token => token.id !== '');
-
+        cancelEditToken(row: ApiTokenEntityInterface & {key: string}) {
+            delete this.drafts[row.key];
+            if (row.key === 'new') {
+                this.tokens = this.tokens.filter(token => token.id !== '');
+            }
         },
     },
 });
