@@ -12,6 +12,7 @@
 </template>
 
 <script lang="ts">
+import {defineComponent} from 'vue';
 import {PencilIcon} from '@heroicons/vue/24/outline';
 
 export default defineComponent({

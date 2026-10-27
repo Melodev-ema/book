@@ -1,3 +1,4 @@
+import {pdfApiToken} from '~/server/utils/config';
 import nodemailer from 'nodemailer';
 import {generatePdfFromEvent} from "~/server/services/bookPdfGenerator";
 import {createSSRApp} from "vue";
@@ -10,20 +11,14 @@ import {mergeLandingContent} from "~/utils/landingContent";
 import {EXCERPT_TEXT_COUNT} from "~/utils/bookToc";
 import {excerptMail} from "~/utils/excerptMail";
 
-const localTransporter = nodemailer.createTransport({
-    host: 'mailhog',
-    port: 1025,
-    secure: false,
-});
+// SMTP_URL : par exemple smtps://utilisateur:motdepasse@smtp.exemple.fr:465. Par défaut, MailHog (docker-compose).
+const transporter = nodemailer.createTransport(process.env.SMTP_URL || 'smtp://mailhog:1025');
+const MAIL_FROM = process.env.MAIL_FROM || 'no-reply@localhost';
 
 export async function sendSiteMail({to}: { to: string; }) {
     // Le même jeton que le téléchargement du livre depuis l'admin (PDF_API_TOKEN)
-    const token = useRuntimeConfig().pdfApiToken;
-    const protocol: string = 'http';
-    const host = 'localhost:3000';
-
-    const pdfBuffer = await generatePdfFromEvent(token, protocol, host, {excerpt: true});
-    const buffer = Buffer.from(pdfBuffer.buffer);
+    const token = pdfApiToken();
+    const pdfBuffer = await generatePdfFromEvent(token, {excerpt: true});
 
     const [bookConfig, siteConfig, postCount] = await Promise.all([
         BookConfig.findOne(),
@@ -56,7 +51,7 @@ export async function sendSiteMail({to}: { to: string; }) {
 </html>`;
 
     const mailOptions = {
-        from: {name: mail.senderName, address: 'no-reply@tonsite.com'},
+        from: {name: mail.senderName, address: MAIL_FROM},
         to,
         subject: mail.subject,
         text: mail.text,
@@ -65,19 +60,14 @@ export async function sendSiteMail({to}: { to: string; }) {
             {
                 filename: 'extrait.pdf',
                 contentType: 'application/pdf',
-                content: buffer,
+                content: pdfBuffer,
                 contentDisposition: 'attachment',
             },
         ]
     };
 
-    localTransporter.sendMail(mailOptions).then((result) => {
-        console.log('Email envoyé avec succès');
-        return result;
-    }).catch((error) => {
-        console.error('Erreur lors de l\'envoi de l\'email', error);
-        throw error;
-    });
+    // Attendu : une erreur SMTP remonte à l'appelant au lieu de faire tomber le serveur (promesse rejetée non gérée)
+    await transporter.sendMail(mailOptions);
 }
 
 function escapeHtml(value: string) {

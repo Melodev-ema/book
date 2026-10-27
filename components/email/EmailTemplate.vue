@@ -48,7 +48,9 @@
                                             </tr>
                                         </tbody>
                                     </table>
-                                    <p :style="offers">{{ mail.offersLine }}</p>
+                                    <p
+                                        v-if="mail.offersLine"
+                                        :style="offers">{{ mail.offersLine }}</p>
                                 </td>
                             </tr>
                             <tr>

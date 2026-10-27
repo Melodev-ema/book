@@ -17,6 +17,7 @@ describe('isPublicRoute', () => {
         ['POST', '/api/login'],
         ['POST', '/api/prospect'],
         ['GET', '/api/site-config'],
+        ['GET', '/api/session'],
     ])('treats %s %s as public', (method, path) => {
         expect(isPublicRoute(method, path)).toBe(true);
     });
@@ -38,10 +39,10 @@ describe('isPublicRoute', () => {
         ['PUT', '/api/book-config'],
         ['PUT', '/api/site-config'],
         ['POST', '/api/site-portrait'],
+        ['DELETE', '/api/session'],
         ['GET', '/api/stats'],
         ['POST', '/api/generate-pdf'],
         ['GET', '/api/config/api-token'],
-        ['POST', '/api/import'],
         ['GET', '/api/import/queue'],
     ])('requires a session for %s %s', (method, path) => {
         expect(isPublicRoute(method, path)).toBe(false);

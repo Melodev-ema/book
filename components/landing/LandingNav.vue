@@ -47,6 +47,7 @@
                 </li>
             </ol>
             <a
+                v-if="canBuy"
                 href="#livre"
                 class="flex h-10 shrink-0 items-center rounded-md bg-lilas px-4 text-sm font-semibold text-atelier-panel transition-colors duration-150 hover:bg-lilas-light"
             >
@@ -57,11 +58,25 @@
 </template>
 
 <script setup lang="ts">
+import {onBeforeUnmount, onMounted, ref} from "vue";
+
 defineProps<{
     title: string;
     sections: { id: string; label: string }[];
+    // Chemin de la page (le fragment, lui, n'existe que dans le navigateur)
+    currentPath: string;
+    // Sans offre à acheter, pas de bouton « Acheter le livre »
+    canBuy?: boolean;
 }>();
 
-const route = useRoute();
-const activeId = computed(() => route.hash.slice(1));
+const activeId = ref('');
+const readHash = () => {
+    activeId.value = window.location.hash.slice(1);
+};
+
+onMounted(() => {
+    readHash();
+    window.addEventListener('hashchange', readHash);
+});
+onBeforeUnmount(() => window.removeEventListener('hashchange', readHash));
 </script>

@@ -1,3 +1,5 @@
+import {defineStore} from "pinia";
+import {apiFetch} from "~/utils/api";
 import type {AttachmentEntityInterface} from "~/entities/AttachmentEntity";
 import type {BookLayoutOptions, TocPosition} from "~/utils/bookToc";
 
@@ -114,28 +116,28 @@ export const useBookStore = defineStore('bookStore', {
         },
     },
     actions: {
+        // Pose les données chargées par le serveur (rendu serveur de la landing)
+        hydrate({config, imagePages}: {config: BookConfigState; imagePages: AttachmentEntityInterface[]}) {
+            this.config = config;
+            this.imagePages = imagePages;
+            this.configLoaded = true;
+        },
         async fetchImagePages() {
-            const {data, error} = await useFetch<AttachmentEntityInterface[]>(`/api/image`);
-            if (error.value || !data.value) {
-                return;
+            try {
+                const data = await apiFetch<AttachmentEntityInterface[]>('/api/image');
+                if (data) {
+                    this.imagePages = data;
+                }
+            } catch {
+                // On garde les images déjà chargées
             }
-            this.imagePages = data.value;
         },
         async fetchConfig() {
-            const data = await $fetch<BookConfigState>('/api/book-config');
+            const data = await apiFetch<BookConfigState>('/api/book-config');
             if (data) {
                 this.config = data;
             }
             this.configLoaded = true;
-        },
-        async saveConfig(config: BookConfigState) {
-            const data = await $fetch<BookConfigState>('/api/book-config', {
-                method: 'PUT',
-                body: config,
-            });
-            if (data) {
-                this.config = data;
-            }
         },
     }
 });

@@ -1,6 +1,6 @@
 # Livre
 
-Application Nuxt 3 qui transforme des contenus (poèmes, récits, textes) en livre mis en page, prêt à être exporté en PDF.
+Application Astro (avec Vue) qui transforme des contenus (poèmes, récits, textes) en livre mis en page, prêt à être exporté en PDF.
 
 On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interface d'administration, on configure le livre (titre, dédicace, préface, format de page), puis on génère le PDF. Une page d'accueil publique présente le livre et permet de recevoir un extrait gratuit par email.
 
@@ -9,17 +9,17 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 - **Génération du livre** : rendu HTML paginé (`/book`) converti en PDF par Puppeteer, avec plusieurs formats d'impression (poche, A5, A4, carré, etc.).
 - **Administration** (`/admin`) : gestion des contenus avec éditeur riche (TipTap), statistiques, configuration du livre.
 - **Import de contenus** :
-  - fichiers `.json`, `.txt`, `.md`, `.html`, `.csv`, `.odt`, `.doc`. Les fichiers texte passent par Pandoc, puis par une IA qui extrait titre, auteur, date et contenu ;
+  - fichiers `.json`, `.txt`, `.md`, `.html`, `.csv`, `.odt`, `.docx`. Les fichiers texte passent par Pandoc, puis par une IA qui extrait titre, auteur, date et contenu ;
   - flux RSS/Atom (extraction des articles) ;
   - API REST `/api/v1/post` authentifiée par token.
 - **Prospects** : formulaire de la page d'accueil qui enregistre l'email et envoie un extrait du livre en PDF.
 
 ## Stack
 
-- Nuxt 3, Vue 3, TypeScript, Pinia
-- TailwindCSS, SCSS, @nuxt/ui, Headless UI, Heroicons
+- Astro 7 (rendu serveur, adaptateur Node), Vue 3, TypeScript, Pinia, vue-router
+- TailwindCSS, SCSS, Headless UI, Heroicons
 - PostgreSQL avec Sequelize (migrations via `sequelize-cli`)
-- nuxt-auth-utils (session admin), tokens API en base
+- h3 (API `/api/*`, session admin par cookie scellé), tokens API en base
 - Puppeteer et pdf-lib pour le PDF, Pandoc pour l'extraction de texte
 - Vitest, ESLint, GitHub Actions
 
@@ -32,8 +32,8 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
 
 1. Créer un fichier `.env.local` à la racine (voir [Variables d'environnement](#variables-denvironnement)) :
 
-   ```dotenv
-   NUXT_SESSION_PASSWORD=une-chaine-aleatoire-d-au-moins-32-caracteres
+   ```bash
+   SESSION_PASSWORD=une-chaine-aleatoire-d-au-moins-32-caracteres
    PDF_API_TOKEN=un-token-secret
    GEMINI_API_KEY=...
    GEMINI_MODEL=gemini-2.5-flash
@@ -47,7 +47,7 @@ On importe ses textes (fichiers, flux RSS ou API), on les édite dans une interf
    make up
    ```
 
-   Le conteneur `nuxt` joue les migrations (`npm run init-db`) puis démarre le serveur de dev.
+   Le conteneur `app` joue les migrations (`npm run init-db`) puis démarre le serveur de dev.
 
 3. Ouvrir :
    - l'application sur http://localhost:3000
@@ -61,7 +61,7 @@ Commandes utiles :
 | `make up` / `make down` | Démarrer / arrêter les conteneurs |
 | `make rebuild` | Reconstruire l'image puis redémarrer |
 | `make logs` | Suivre les logs de l'application |
-| `make shell` | Ouvrir un shell dans le conteneur `nuxt` |
+| `make shell` | Ouvrir un shell dans le conteneur `app` |
 | `make clean` | Tout arrêter et supprimer les volumes (**efface la base**) |
 
 ## Démarrage sans Docker
@@ -70,7 +70,7 @@ Commandes utiles :
 npm ci
 ```
 
-Créer un fichier `.env` avec au minimum les variables `DB_*` pointant vers votre PostgreSQL (par exemple `DB_HOST=localhost`), `NUXT_SESSION_PASSWORD` et `PDF_API_TOKEN`.
+Créer un fichier `.env` avec au minimum les variables `DB_*` pointant vers votre PostgreSQL (par exemple `DB_HOST=localhost`), `SESSION_PASSWORD` et `PDF_API_TOKEN`.
 
 `sequelize-cli` ne lit pas le fichier `.env` : il faut exporter les variables avant de lancer les migrations.
 
@@ -87,10 +87,13 @@ npm run dev
 | Variable | Rôle |
 | --- | --- |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Connexion PostgreSQL. En dev, valeurs par défaut `postgres` / `5432` / `user` / `livre`. Obligatoires en production. |
-| `NUXT_SESSION_PASSWORD` | Clé de chiffrement de la session admin (32 caractères minimum). |
-| `PDF_API_TOKEN` | Secret qui autorise Puppeteer à ouvrir `/book?token=...` pour générer le PDF. En production, il peut être surchargé au runtime par `NUXT_PDF_API_TOKEN`. |
+| `SESSION_PASSWORD` | Clé de chiffrement de la session admin (32 caractères minimum). |
+| `PDF_API_TOKEN` | Secret qui autorise Puppeteer à ouvrir `/book?token=...` pour générer le PDF. |
 | `GEMINI_API_KEY`, `GEMINI_MODEL` | IA utilisée pour l'import de fichiers texte (endpoint Gemini compatible OpenAI). Prioritaire si la clé est définie. |
 | `AI_API_URL`, `AI_MODEL` | Sinon, serveur local compatible OpenAI (Ollama par exemple, `AI_API_URL=http://host.docker.internal:11434/`). |
+| `SMTP_URL` | Serveur d'envoi des emails (extrait gratuit), par exemple `smtps://utilisateur:motdepasse@smtp.exemple.fr:465`. Par défaut, MailHog de `docker-compose.yml`. |
+| `MAIL_FROM` | Adresse d'expédition des emails. |
+| `SITE_DOMAIN` | Nom de domaine public (ex. `livre.exemple.fr`), à définir **au build**. Derrière un proxy, il permet de lire l'IP réelle des visiteurs (`X-Forwarded-For`), utilisée pour limiter les tentatives de connexion et les demandes d'extrait. Obligatoire : en production, un build sans lui refuse de démarrer. |
 | `PUPPETEER_EXECUTABLE_PATH` | Chemin vers Chromium. Déjà défini dans l'image Docker ; inutile en local, où Puppeteer utilise son propre Chromium. |
 
 Les fichiers `.env` et `.env.*` sont ignorés par git.
@@ -108,13 +111,21 @@ Les migrations se trouvent dans `migrations/` (fichiers `.cjs`), la configuratio
 
 Hors Docker : `npm run init-db` et `npm run create-migration -- <nom>`.
 
-Une migration crée un compte administrateur `admin@admin.com`. Changez son mot de passe avant tout déploiement.
+En dev, le seeder `seeders/` crée le compte `admin@admin.com` (même mot de passe qu'avant) : `docker compose up` le lance après les migrations, sinon `make seed` ou `npm run seed`. Il refuse de tourner en production, où ce mot de passe public est de toute façon refusé à la connexion. Les migrations ne créent plus aucun compte, et suppriment `admin@admin.com` s'il a encore ce mot de passe.
+
+Pour créer votre compte (ou changer un mot de passe) :
+
+```bash
+make admin-password EMAIL=vous@exemple.fr
+```
+
+Le mot de passe (12 caractères minimum) est demandé sans écho. La commande tourne dans le conteneur `app`, qui a déjà les variables `DB_*`. Hors Docker : `npm run admin:password -- vous@exemple.fr`, avec les variables `DB_*` dans l'environnement (ex. `DB_HOST=localhost`).
 
 ## Import de contenus
 
 Depuis `/admin/import` :
 
-- **Fichiers** : les fichiers `.json` sont importés directement ; les autres formats sont convertis en texte par Pandoc, nettoyés, puis envoyés à l'IA qui renvoie un contenu structuré. Les imports passent par une file de traitement en mémoire, dont le statut est visible dans l'interface.
+- **Fichiers** (5 Mo maximum chacun) : les fichiers `.json` (un texte `{postTitle, author, content, publishDate}` ou un tableau de textes) sont importés directement ; les autres formats sont convertis en texte par Pandoc, nettoyés, puis envoyés à l'IA qui renvoie un contenu structuré. Les imports passent par une file de traitement en mémoire, dont le statut est visible dans l'interface.
 - **Flux RSS** : le contenu complet de chaque article du flux est extrait. Chaque article reçoit un identifiant externe unique, ce qui empêche de l'importer deux fois.
 - **API** : créer un token dans l'onglet API (5 tokens actifs maximum), puis :
 
@@ -144,7 +155,7 @@ npm test
 npm run lint
 ```
 
-La CI GitHub Actions (`.github/workflows/ci.yml`) lance `npm ci`, le lint, les tests et le build à chaque push sur `main` et `dev`, ainsi que sur chaque pull request.
+La CI GitHub Actions (`.github/workflows/ci.yml`) lance `npm ci`, le lint, la vérification des types (`npm run check`), les tests et le build à chaque push sur `main` et `dev`, ainsi que sur chaque pull request.
 
 ### Qualité de l'import de fichiers (promptfoo)
 
@@ -159,23 +170,71 @@ Pour ajouter un cas : déposer le fichier dans `evals/fixtures/`, écrire le con
 
 ## Production
 
+### Avec Docker
+
+Le `Dockerfile` construit une image de production (le développement utilise `Dockerfile.dev`) :
+
+```bash
+docker build --build-arg SITE_DOMAIN=livre.exemple.fr -t livre .
+```
+
+```bash
+docker run -d -p 3000:3000 --env-file .env.production -v livre-uploads:/app/public/uploads livre
+```
+
+Au démarrage, le conteneur joue les migrations puis lance le serveur. Le volume `/app/public/uploads` garde les images envoyées depuis l'admin (photo de l'auteur, couverture) entre deux déploiements ; le serveur les sert lui-même sous `/uploads/`. Ensuite, créer le compte administrateur :
+
+```bash
+docker exec -it <conteneur> npm run admin:password -- vous@exemple.fr
+```
+
+### Purge des prospects (job planifié)
+
+La politique de confidentialité annonce des durées de conservation : un script les applique, en effaçant les adresses
+trop anciennes (la demande reste comptée dans les statistiques).
+
+- sans accord pour les nouvelles du livre : 30 jours après la demande d'extrait ;
+- abonnés : 3 ans après leur dernier contact (une nouvelle demande d'extrait repousse ce délai).
+
+Le serveur web ne le lance pas lui-même : il faut le planifier. Avec **Scaleway Serverless Jobs**, créer un job :
+
+- **image** : la même que le site (celle construite par le `Dockerfile`) ;
+- **commande** : `node dist/scripts/purge-prospects.mjs` ;
+- **planification** : chaque nuit, par exemple `0 3 * * *` (fuseau `Europe/Paris`) ;
+- **variables d'environnement** : `NODE_ENV=production` et les `DB_*` du site (en secrets).
+
+Le script affiche le nombre d'adresses effacées et sort en erreur (code 1) si la base est injoignable : le job apparaît
+alors en échec dans la console. Pour le lancer à la main : `npm run purge` (après `npm run build`).
+
+**Sans ce job, rien n'est purgé** : à vérifier à chaque mise en production.
+
+### Sans Docker
+
 ```bash
 npm run build
 ```
 
 ```bash
-node .output/server/index.mjs
+npm start
 ```
 
-Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer. Le `Dockerfile` actuel lance le serveur de développement et n'est pas une image de production.
+Le serveur a besoin des variables d'environnement ci-dessus, de Pandoc et d'un Chromium accessible par Puppeteer. En production, il répond 500 tant que `SESSION_PASSWORD` (32 caractères minimum), `PDF_API_TOKEN` (16 minimum) et `DB_HOST`, `DB_NAME`, `DB_USER` ne sont pas définis.
+
+Protections intégrées (en mémoire, valables pour une seule instance du serveur) :
+
+- connexion : 10 tentatives par IP et par quart d'heure ;
+- extrait gratuit : 3 demandes par IP et par heure, 1 par adresse email et par jour, 60 par heure au total ;
+- requêtes limitées à 20 Mo, images du livre à 10 Mo (JPEG ou PNG vérifiés) ;- en-têtes de sécurité sur toutes les pages (pas d'affichage en iframe, `nosniff`…), et `noindex` sur l'admin, le livre et l'API ;
+- polices servies par le site (aucune requête vers Google Fonts).
 
 ## Structure
 
 ```
 components/   Composants Vue (admin, livre, landing, ui, layout)
-pages/        Routes Nuxt : accueil, /poem, /book, /admin/*
-layouts/      Layouts (admin, book, login)
-middleware/   Middleware de routes (auth admin, accès au livre)
+src/pages/    Routes Astro : accueil, /book, /uploads/*, /admin/*, /api/* (transmis à h3)
+src/admin/    Appli Vue de l'admin (vue-router, vues, layouts)
+src/layouts/  Layout Astro de base
+src/middleware.ts  Middleware Astro (accès admin et livre)
 stores/       Stores Pinia
 entities/     Entités et schémas de validation partagés
 server/

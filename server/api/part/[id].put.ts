@@ -1,9 +1,12 @@
+import {defineEventHandler, createError, readBody} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
+import {routeId} from '~/server/utils/routeId';
 import Part from "~/server/models/part";
 
 // Renomme une partie
 export default defineEventHandler(async (event) => {
     await requireUserSession(event);
-    const id = getRouterParam(event, 'id');
+    const id = routeId(event, 'Part not found');
     const body = await readBody(event);
     const title = typeof body?.title === 'string' ? body.title.trim() : '';
 

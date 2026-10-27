@@ -1,10 +1,10 @@
 # --- variables ajustables ---------------------------------
 DC       ?= docker compose
-SERVICE  ?= nuxt
+SERVICE  ?= app
 EXEC     := $(DC) exec $(SERVICE)
 
 # --- cibles ------------------------------------------------
-.PHONY: dev build preview lint lint-fix migration-create migration-run migration-undo migration-reset up down logs
+.PHONY: dev build preview lint lint-fix migration-create migration-run migration-undo migration-reset seed admin-password up down logs
 
 # --- dev ----------------------------------------------------
 dev:
@@ -15,9 +15,6 @@ build:
 
 preview:
 	npm run preview
-
-generate:
-	npm run generate
 
 lint:
 	npm run lint
@@ -73,3 +70,16 @@ migration-undo:
 migration-reset:
 	$(EXEC) npx sequelize-cli db:migrate:undo:all
 	$(EXEC) npx sequelize-cli db:migrate
+	$(EXEC) npm run seed
+
+## Compte admin@admin.com de développement
+seed:
+	$(EXEC) npm run seed
+
+## make admin-password EMAIL=vous@exemple.fr  (crée le compte ou change son mot de passe)
+admin-password:
+	@if [ -z "$(EMAIL)" ]; then \
+		echo "Merci de préciser l'email : make admin-password EMAIL=<email>"; \
+		exit 1; \
+	fi
+	$(EXEC) npm run admin:password -- $(EMAIL)

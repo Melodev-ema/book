@@ -87,17 +87,21 @@ import {
     ListBulletIcon,
     XMarkIcon,
 } from '@heroicons/vue/24/outline';
+import {computed, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import SidebarContent from "~/components/admin/ui/AdminSidebarContent.vue";
+import {useSession} from "~/utils/useSession";
 
 const sidebarOpen = ref(false);
 const route = useRoute();
+const router = useRouter();
 
 const items = [
-    {name: 'Accueil', href: '/admin', icon: HomeIcon, exact: true},
-    {name: 'Mon livre', href: '/admin/book', icon: BookOpenIcon},
-    {name: 'Contenus', href: '/admin/content', icon: ListBulletIcon},
-    {name: 'Importer du contenu', href: '/admin/import', icon: ArrowsUpDownIcon},
-    {name: 'Configuration', href: '/admin/settings', icon: Cog6ToothIcon},
+    {name: 'Accueil', href: '/', icon: HomeIcon, exact: true},
+    {name: 'Mon livre', href: '/book', icon: BookOpenIcon},
+    {name: 'Contenus', href: '/content', icon: ListBulletIcon},
+    {name: 'Importer du contenu', href: '/import', icon: ArrowsUpDownIcon},
+    {name: 'Configuration', href: '/settings', icon: Cog6ToothIcon},
     {name: 'Mon site', href: '/', icon: GlobeAltIcon, exact: true, external: true},
 ];
 
@@ -106,10 +110,11 @@ const navigation = computed(() => items.map(item => ({
     current: !item.external && (item.exact ? route.path === item.href : route.path.startsWith(item.href)),
 })));
 
-const userLogout = () => {
-    const {clear} = useUserSession();
-    clear().then(() => {
-        navigateTo('/admin/login');
-    });
+const userLogout = async () => {
+    try {
+        await useSession().clear();
+    } finally {
+        await router.push('/login');
+    }
 };
 </script>

@@ -36,6 +36,7 @@
                     />
                 </a>
                 <a
+                    v-if="canBuy"
                     href="#livre"
                     class="flex h-12 items-center rounded-md border border-atelier-line-strong px-5.5 text-[15px] font-medium text-atelier-ink transition-colors duration-150 hover:border-atelier-subtle hover:bg-atelier-hover"
                 >
@@ -92,5 +93,6 @@ defineProps<{
     coverUrl?: string | null;
     coverAlt?: string | null;
     minPrice?: number;
+    canBuy?: boolean;
 }>();
 </script>

@@ -1,15 +1,14 @@
-import {setHeader} from "h3";
+import {defineEventHandler, createError, setHeader} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
+import {pdfApiToken} from '~/server/utils/config';
 import {generatePdfFromEvent} from "~/server/services/bookPdfGenerator";
 
 export default defineEventHandler(async (event/**/) => {
     await requireUserSession(event);
 
-    const protocol: string = event.node.req.headers?.forwarded || 'http';
-    const host = event.node.req.headers?.host || 'localhost';
-
     try {
-        const token = useRuntimeConfig().pdfApiToken;
-        const pdfBuffer = await generatePdfFromEvent(token, protocol, host);
+        const token = pdfApiToken();
+        const pdfBuffer = await generatePdfFromEvent(token);
         const fileName = `book.pdf`;
 
         // Set response headers for download

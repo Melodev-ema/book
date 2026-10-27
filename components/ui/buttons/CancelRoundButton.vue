@@ -8,6 +8,7 @@
 </template>
 
 <script lang="ts">
+import {defineComponent} from "vue";
 import BaseButton from "~/components/ui/buttons/BaseButton.vue";
 
 export default defineComponent({

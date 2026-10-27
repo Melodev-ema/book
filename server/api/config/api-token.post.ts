@@ -1,3 +1,5 @@
+import {defineEventHandler, createError, readBody} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import ApiToken from "~/server/models/apiToken";
 import generateSiteToken from "~/server/utils/tokenGenertor";
 
@@ -5,9 +7,12 @@ export default defineEventHandler(async (event/**/) => {
     await requireUserSession(event);
 
     const data = await readBody(event);
-    const name = data.name;
+    const name = typeof data?.name === 'string' ? data.name.trim() : '';
+    if (!name) {
+        throw createError({statusCode: 400, statusMessage: 'Le nom du token est requis'});
+    }
 
-    //max 10 tokens
+    // 5 tokens actifs au plus
     if (await ApiToken.count(
         {
             where: {
@@ -17,7 +22,7 @@ export default defineEventHandler(async (event/**/) => {
     ) >= 5) {
         throw createError({
             statusCode: 400,
-            statusMessage: 'Maximum 10 tokens allowed'
+            statusMessage: '5 tokens actifs au maximum'
         });
     }
 

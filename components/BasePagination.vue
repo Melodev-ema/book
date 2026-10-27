@@ -52,7 +52,7 @@
     </nav>
 </template>
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, type PropType} from 'vue';
 import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/24/outline";
 import {paginationItems, type PaginationItem} from '~/utils/pagination';
 

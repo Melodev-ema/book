@@ -8,12 +8,12 @@ export interface ApiTokenEntityInterface {
 }
 
 export class ApiTokenEntity implements ApiTokenEntityInterface {
-    id: string
-    name: string
-    token: string
-    revokedAt: Date | null
-    revoked: boolean
-    createdAt: Date
+    id: string;
+    name: string;
+    token: string;
+    revokedAt: Date | null;
+    revoked: boolean;
+    createdAt: Date;
 
     constructor(data: ApiTokenEntity) {
         this.id = data.id;
