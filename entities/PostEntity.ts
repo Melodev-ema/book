@@ -75,14 +75,10 @@ export default class PostEntity implements PostEntityInterface {
         postTitle: z.string(),
         author: z.string(),
         content: z.string(),
-        publishDate: z.coerce
-            .date({
-                required_error: "La date de publication est requise",
-                invalid_type_error: "publishDate doit être une date valide (ISO 8601)"
-            })
-            .refine(d => !isNaN(d.getTime()), {
-                message: "publishDate doit être une date valide",
-            }),
+        // Absence vérifiée avant la coercion : une fois convertie, une date manquante ne se distingue plus d'une date invalide
+        publishDate: z.any()
+            .refine(value => value !== undefined, "La date de publication est requise")
+            .pipe(z.coerce.date({error: "publishDate doit être une date valide (ISO 8601)"})),
         attachments: z.array(z.string()).optional(),
     });
 }

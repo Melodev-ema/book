@@ -5,7 +5,7 @@ import {sendSiteMail} from "~/server/services/sendSiteMail";
 import {clientIp, createRateLimiter, tooManyRequests} from "~/server/utils/rateLimit";
 
 const bodySchema = z.object({
-    email: z.string().trim().toLowerCase().email().max(254),
+    email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
     // Case « recevoir les nouvelles du livre », non cochée par défaut
     newsletterConsent: z.boolean().optional().default(false),
 });

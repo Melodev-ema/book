@@ -6,7 +6,7 @@ import {setUserSession} from "~/server/utils/session";
 import {clientIp, createRateLimiter, tooManyRequests} from "~/server/utils/rateLimit";
 
 const bodySchema = z.object({
-    email: z.string().email(),
+    email: z.email(),
     password: z.string().min(8)
 });
 

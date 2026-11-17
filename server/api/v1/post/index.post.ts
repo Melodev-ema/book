@@ -1,4 +1,5 @@
 import {defineEventHandler, createError, readBody} from 'h3';
+import {z} from 'zod';
 import Post from "~/server/models/post";
 import PostEntity from "~/entities/PostEntity";
 import {sanitizeContent} from "~/server/services/contentSanitizer";
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
         throw createError({
             statusCode: 400,
             statusMessage: 'Requête invalide',
-            data: result.error.format()  // structure simple des erreurs
+            data: z.treeifyError(result.error)  // structure simple des erreurs
         });
     }
 

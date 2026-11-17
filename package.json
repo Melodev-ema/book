@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@adonisjs/hash": "^9.1.1",
-    "@astrojs/node": "11.1.8",
+    "@astrojs/node": "11.1.13",
     "@astrojs/vue": "7.1.0",
     "@extractus/article-extractor": "^8.0.19",
     "@extractus/feed-extractor": "^7.1.6",
@@ -48,7 +48,7 @@
     "@tiptap/pm": "^3.31.3",
     "@tiptap/vue-3": "^3.31.3",
     "@vueuse/core": "^14.4.0",
-    "astro": "7.4.0",
+    "astro": "7.4.12",
     "dompurify": "^3.2.6",
     "h3": "^1.15.11",
     "jsdom": "^26.1.0",
@@ -65,7 +65,7 @@
     "vue": "^3.5.43",
     "vue-router": "^5.4.0",
     "vue-sonner": "2.0.9",
-    "zod": "^3.24.2"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
