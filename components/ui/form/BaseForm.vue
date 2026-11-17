@@ -16,7 +16,9 @@
             <CancelButton @click="cancel">
                 Annuler
             </CancelButton>
-            <BaseButton @click="submit">
+            <BaseButton
+                :loading="loading"
+                @click="submit">
                 Enregistrer
             </BaseButton>
         </div>
@@ -39,6 +41,11 @@ export default defineComponent({
             type: String,
             default: '',
         },
+        // Envoi en cours : bouton désactivé, et Entrée n'envoie pas une seconde fois
+        loading: {
+            type: Boolean,
+            default: false,
+        },
     },
     emits: ['cancel', 'submit'],
     methods: {
@@ -46,6 +53,9 @@ export default defineComponent({
             this.$emit('cancel');
         },
         submit() {
+            if (this.loading) {
+                return;
+            }
             this.$emit('submit');
         },
     }

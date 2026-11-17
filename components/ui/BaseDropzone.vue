@@ -33,7 +33,7 @@
             </label>
             <p class="text-xs text-atelier-subtle">{{ types }} — {{ maxFiles > 1 ? `${maxFiles} fichiers max., ` : '' }}{{ maxSizeMb }} max. par fichier</p>
         </div>
-        <admin-alert
+        <AdminAlert
             v-if="errors.length > 0"
             title="Certains fichiers n'ont pas été ajoutés"
             severity="danger"
@@ -45,7 +45,7 @@
                     :key="error">{{ error }}
                 </li>
             </ul>
-        </admin-alert>
+        </AdminAlert>
         <ul
             v-if="fileList.length > 0"
             role="list"
@@ -76,10 +76,12 @@
 </template>
 
 <script lang="ts">
+import {defineComponent, ref, watch} from 'vue';
 import {useDropZone} from '@vueuse/core';
 import {TrashIcon, DocumentIcon, ArrowUpTrayIcon} from "@heroicons/vue/24/outline";
 import {FileEntity} from "~/entities/FileEntity";
 import AdminAlert from "~/components/admin/ui/AdminAlert.vue";
+import {toast} from "~/utils/toast";
 
 export default defineComponent({
     name: "BaseDropzone",
@@ -110,7 +112,6 @@ export default defineComponent({
     setup(props) {
         const dropZoneRef = ref<HTMLElement | null>(null);
         const fileList = ref<FileEntity[]>(props.files);
-        const toast = useToast();
         const fileInputRef = ref<HTMLInputElement | null>(null);
         const errors = ref<string[]>([]);
 
@@ -130,12 +131,7 @@ export default defineComponent({
             if (files) {
                 files.forEach(file => {
                     if (fileList.value.length >= props.maxFiles) {
-                        toast.add({
-                            id: 'error',
-                            title: 'Erreur lors du téléchargement du fichier',
-                            color: 'error',
-                            icon: 'i-material-symbols-file-download-off',
-                        });
+                        toast.error('Erreur lors du téléchargement du fichier');
                         return;
                     }
                     if (file.size > props.maxSize) {
@@ -180,7 +176,7 @@ export default defineComponent({
                 'text/html': 'HTML',
                 'text/markdown': 'Markdown',
                 'application/vnd.oasis.opendocument.text': 'ODT',
-                'application/msword': 'Word',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
                 'image/jpeg': 'JPG',
                 'image/png': 'PNG',
             };
@@ -196,7 +192,7 @@ export default defineComponent({
         },
         removeFile(file: FileEntity) {
             const newList = this.fileList.filter(f => f.id !== file.id);
-            this.$emit('update:files', newList)
+            this.$emit('update:files', newList);
 
         },
         addFile(event: Event) {

@@ -8,6 +8,7 @@ export const PUBLIC_ROUTES = new Set([
     'POST /api/login',
     'POST /api/prospect',
     'GET /api/site-config',
+    'GET /api/session',
 ]);
 
 export function isPublicRoute(method: string, path: string): boolean {

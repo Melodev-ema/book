@@ -1,0 +1,187 @@
+---
+import LegalLayout from '../layouts/LegalLayout.astro';
+import LegalValue from '../components/LegalValue.astro';
+import {findBookConfig, findSiteConfig} from '~/server/services/publicData';
+import {PROSPECT_RETENTION_DAYS, SUBSCRIBER_RETENTION_YEARS} from '~/server/services/prospectRetention';
+
+// À changer à chaque modification du texte
+const LAST_UPDATE = '19 octobre 2026';
+
+const [site, bookConfig] = await Promise.all([findSiteConfig(), findBookConfig()]);
+// Valeurs simples : sur le modèle Sequelize, book.title serait masqué par les champs de la classe
+const book = JSON.parse(JSON.stringify(bookConfig));
+const {legal} = site;
+const bookTitle = book.title || 'Le livre';
+const publisher = legal.publisher || 'l\'éditeur';
+const contact = legal.email;
+---
+<LegalLayout title="Politique de confidentialité" bookTitle={bookTitle}>
+    <p class="mt-3 text-sm">Dernière mise à jour : {LAST_UPDATE}</p>
+
+    <h2>1. Introduction</h2>
+    <p>La protection de vos données personnelles est importante pour {publisher}.</p>
+    <p>
+        La présente politique de confidentialité explique quelles données personnelles peuvent être collectées lors de
+        votre utilisation du site, pourquoi elles sont utilisées, combien de temps elles sont conservées et quels sont
+        vos droits.
+    </p>
+    <p>
+        {publisher} s'engage à traiter vos données conformément au Règlement général sur la protection des données
+        (RGPD — règlement UE 2016/679) et à la loi Informatique et Libertés.
+    </p>
+
+    <h2>2. Responsable du traitement</h2>
+    <p>Le responsable du traitement des données personnelles est :</p>
+    <p>
+        <strong><LegalValue value={legal.publisher}/></strong><br/>
+        <LegalValue value={legal.address}/><br/>
+        Contact : {contact ? <a href={`mailto:${contact}`}>{contact}</a> : <LegalValue value=""/>}
+    </p>
+    <p>Pour toute question relative à la protection de vos données personnelles, vous pouvez utiliser cette adresse électronique.</p>
+
+    <h2>3. Données personnelles collectées</h2>
+    <p>{publisher} limite la collecte de données aux informations nécessaires au fonctionnement du site et aux services proposés.</p>
+
+    <h3>3.1. Téléchargement de l'extrait gratuit</h3>
+    <p>Lorsque vous demandez à recevoir un extrait gratuit du livre, les données suivantes peuvent être collectées :</p>
+    <ul>
+        <li>Votre adresse e-mail.</li>
+        <li>Les informations techniques nécessaires au traitement et à l'envoi de votre demande.</li>
+    </ul>
+    <p><strong>Finalité :</strong> vous transmettre l'extrait gratuit demandé.</p>
+    <p><strong>Base légale :</strong> l'exécution de mesures précontractuelles prises à votre demande (article 6.1.b du RGPD).</p>
+    <p>Votre adresse e-mail est nécessaire pour recevoir l'extrait. Sans celle-ci, l'envoi ne peut pas être effectué.</p>
+    <p>Cette demande ne vous inscrit pas automatiquement à une liste de diffusion commerciale.</p>
+
+    <h3>3.2. Inscription aux actualités du livre</h3>
+    <p>
+        Vous pouvez choisir de recevoir par e-mail des informations concernant le livre, notamment sa publication, ses
+        actualités et d'éventuelles offres commerciales. Dans ce cas, {publisher} peut collecter :
+    </p>
+    <ul>
+        <li>Votre adresse e-mail.</li>
+        <li>Votre choix explicite de recevoir ces communications.</li>
+        <li>La date et, si nécessaire, les informations permettant de prouver votre consentement.</li>
+    </ul>
+    <p><strong>Finalité :</strong> vous adresser les communications auxquelles vous avez volontairement souscrit.</p>
+    <p><strong>Base légale :</strong> votre consentement (article 6.1.a du RGPD).</p>
+    <p>L'inscription est entièrement facultative et repose sur une case à cocher distincte, non précochée.</p>
+    <p>
+        Vous pouvez retirer votre consentement à tout moment, sans justification, en utilisant le lien de désinscription
+        présent dans les e-mails ou en écrivant à {contact ? <a href={`mailto:${contact}`}>{contact}</a> : <LegalValue value=""/>}.
+        Le retrait de votre consentement n'affecte pas la licéité des traitements réalisés avant ce retrait.
+    </p>
+
+    <h3>3.3. Échanges par e-mail</h3>
+    <p>Lorsque vous contactez {publisher} par courrier électronique, les données suivantes peuvent être traitées :</p>
+    <ul>
+        <li>Votre adresse e-mail.</li>
+        <li>Votre nom ou pseudonyme, si vous le communiquez.</li>
+        <li>Le contenu de votre message.</li>
+        <li>Toute information que vous choisissez volontairement de transmettre.</li>
+    </ul>
+    <p><strong>Finalité :</strong> répondre à votre demande et assurer le suivi des échanges.</p>
+    <p>
+        <strong>Base légale :</strong> l'intérêt légitime de {publisher} à répondre aux sollicitations reçues (article
+        6.1.f du RGPD), sauf lorsqu'une autre base légale est applicable à la nature de votre demande.
+    </p>
+    <p>Ces informations ne sont pas utilisées pour vous envoyer des communications promotionnelles sans base légale appropriée.</p>
+
+    <h3>3.4. Données techniques et sécurité</h3>
+    <p>Lors de votre navigation ou de l'envoi d'une demande, certaines données techniques peuvent être traitées, notamment :</p>
+    <ul>
+        <li>Votre adresse IP.</li>
+        <li>La date et l'heure des requêtes.</li>
+        <li>Les informations techniques liées à votre navigateur et aux requêtes HTTP.</li>
+        <li>Les éventuelles erreurs ou tentatives d'accès anormales.</li>
+    </ul>
+    <p><strong>Finalité :</strong> assurer le fonctionnement, la sécurité et la disponibilité du site, et prévenir les utilisations abusives.</p>
+    <p><strong>Base légale :</strong> l'intérêt légitime de {publisher} à protéger son site et ses services (article 6.1.f du RGPD).</p>
+
+    <h2>4. Durées de conservation</h2>
+    <p>Les données personnelles sont conservées uniquement pendant la durée nécessaire aux finalités pour lesquelles elles ont été collectées.</p>
+
+    <h3>Téléchargement de l'extrait gratuit</h3>
+    <p>
+        L'adresse e-mail utilisée pour demander l'extrait est conservée pendant le temps nécessaire à son envoi et à la
+        gestion d'éventuels incidents de distribution, soit {PROSPECT_RETENTION_DAYS} jours après votre demande, puis
+        supprimée automatiquement. Si vous avez également consenti à recevoir les actualités du livre, votre adresse e-mail peut être conservée séparément pour
+        cette finalité.
+    </p>
+
+    <h3>Inscription aux actualités du livre</h3>
+    <p>
+        Les données sont conservées jusqu'au retrait de votre consentement ou, au maximum,
+        pendant {SUBSCRIBER_RETENTION_YEARS} ans à compter de leur collecte ou du dernier contact volontaire de votre part (par
+        exemple une nouvelle demande d'extrait), puis supprimées automatiquement. L'ouverture automatique d'un e-mail ne
+        constitue pas, à elle seule, un contact volontaire.
+    </p>
+
+    <h3>Échanges par e-mail</h3>
+    <p>
+        Lorsqu'aucune relation commerciale n'est engagée, ces informations sont conservées pendant une durée maximale de
+        trois ans à compter du dernier contact émanant de votre part.
+    </p>
+
+    <h3>Données techniques</h3>
+    <p>
+        Pour limiter les envois abusifs, une empreinte de votre adresse IP et de votre adresse e-mail est gardée en
+        mémoire 24 heures au plus, puis effacée ; elle n'est pas enregistrée en base de données.
+    </p>
+    <p>
+        Les journaux du site n'enregistrent ni votre adresse e-mail ni votre adresse IP. Les journaux techniques générés
+        par l'hébergeur sont conservés selon ses propres durées, pour la sécurité et le bon fonctionnement du site, et ne
+        sont pas exploités par {publisher} à des fins de suivi.
+    </p>
+
+    <h3>Sauvegardes</h3>
+    <p>
+        Les sauvegardes de la base de données réalisées chez l'hébergeur peuvent contenir une adresse déjà effacée du
+        site, jusqu'à l'expiration de ces sauvegardes. Elles ne sont utilisées que pour restaurer le site en cas
+        d'incident.
+    </p>
+
+    <h2>5. Destinataires des données</h2>
+    <p>
+        Vos données ne sont ni vendues ni louées. Elles sont destinées à {publisher} et peuvent être accessibles aux
+        prestataires techniques strictement nécessaires au fonctionnement du site, dans la limite de leurs missions :
+        l'hébergeur (<LegalValue value={legal.hostName}/>, voir les <a href="/mentions-legales">mentions légales</a>) et le
+        service d'envoi des e-mails.
+    </p>
+
+    <h2>6. Sécurité</h2>
+    <p>
+        {publisher} met en œuvre des mesures techniques et organisationnelles adaptées pour protéger vos données :
+        connexion chiffrée (HTTPS), accès à l'administration réservé et protégé par mot de passe, limitation des
+        tentatives de connexion et des envois de formulaires.
+    </p>
+
+    <h2>7. Cookies et traceurs</h2>
+    <p>
+        Ce site n'utilise aucun outil de mesure d'audience, pixel publicitaire ou autre traceur nécessitant votre
+        consentement : aucun bandeau n'est donc affiché. Le seul cookie sert à la connexion de l'administrateur du site ;
+        il est strictement nécessaire et n'est jamais déposé chez les visiteurs. Les polices de caractères sont servies
+        par le site lui-même, sans appel à un service tiers.
+    </p>
+
+    <h2>8. Vos droits</h2>
+    <p>Conformément à la réglementation applicable, vous disposez des droits suivants sur vos données :</p>
+    <ul>
+        <li>droit d'accès, de rectification et d'effacement ;</li>
+        <li>droit à la limitation du traitement et droit d'opposition ;</li>
+        <li>droit à la portabilité de vos données ;</li>
+        <li>droit de retirer votre consentement à tout moment ;</li>
+        <li>droit de définir des directives relatives au sort de vos données après votre décès.</li>
+    </ul>
+    <p>
+        Pour les exercer, écrivez à {contact ? <a href={`mailto:${contact}`}>{contact}</a> : <LegalValue value=""/>}.
+        Une réponse vous sera apportée dans un délai d'un mois.
+    </p>
+    <p>Vous disposez également du droit d'introduire une réclamation auprès de la CNIL (<a href="https://www.cnil.fr/fr/plaintes">cnil.fr</a>).</p>
+
+    <h2>9. Modification de la politique</h2>
+    <p>
+        La présente politique peut être mise à jour, notamment en cas d'évolution du site ou de la réglementation. La date
+        de dernière mise à jour figure en haut de cette page.
+    </p>
+</LegalLayout>

@@ -1,4 +1,5 @@
 import {DataTypes, Model} from "sequelize";
+import db from "~/server/utils/db";
 
 export interface ApiTokenInterface {
     id: string

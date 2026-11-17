@@ -1,19 +1,13 @@
+import {defineEventHandler, createError, readMultipartFormData} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import {createJob, processJob} from "~/server/services/importQueue";
-import {randomUUID} from "uncrypto";
+import {randomUUID} from "node:crypto";
+import {IMPORT_FILE_TYPES, IMPORT_MAX_SIZE} from "~/utils/importFileTypes";
 
 export default defineEventHandler(async (event) => {
     await requireUserSession(event);
 
     const files = await readMultipartFormData(event);
-    const acceptedFileTypes = [
-        'application/json',
-        'text/csv',
-        'text/plain',
-        'text/html',
-        'text/markdown',
-        'application/vnd.oasis.opendocument.text',
-        'application/msword',
-    ];
 
     if (!files || files.length === 0) {
         throw createError({
@@ -23,10 +17,16 @@ export default defineEventHandler(async (event) => {
     }
 
     const createdJobs = [];
+    // Fichiers refusés (type ou taille), signalés à l'admin
+    const skipped: string[] = [];
 
     for (const file of files) {
         const type = file.type || '';
-        if (!acceptedFileTypes.includes(type) || !file.filename) {
+        if (!file.filename) {
+            continue;
+        }
+        if (!IMPORT_FILE_TYPES.includes(type) || file.data.length > IMPORT_MAX_SIZE) {
+            skipped.push(file.filename);
             continue;
         }
 
@@ -38,5 +38,5 @@ export default defineEventHandler(async (event) => {
         processJob(job, file);
     }
 
-    return {jobs: createdJobs};
+    return {jobs: createdJobs, skipped};
 });

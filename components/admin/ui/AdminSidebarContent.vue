@@ -3,8 +3,8 @@
         aria-label="Administration"
         class="flex h-full grow flex-col border-r border-atelier-line bg-atelier-panel"
     >
-        <NuxtLink
-            to="/admin"
+        <RouterLink
+            to="/"
             class="flex h-16 shrink-0 items-center gap-2.5 px-5 text-atelier-ink"
             @click="$emit('navigate')"
         >
@@ -24,7 +24,7 @@
                 stroke="currentColor"
                 stroke-width="1.5"/></svg>
             <span class="font-fraunces text-lg font-medium">L'atelier</span>
-        </NuxtLink>
+        </RouterLink>
         <ul
             role="list"
             class="flex flex-col gap-0.5 px-3 py-2"
@@ -33,8 +33,10 @@
                 v-for="item in navigation"
                 :key="item.name"
             >
-                <NuxtLink
-                    :to="item.href"
+                <!-- « Mon site » sort de l'admin : lien classique hors du router -->
+                <component
+                    :is="item.external ? 'a' : RouterLink"
+                    v-bind="item.external ? {href: item.href} : {to: item.href}"
                     class="flex h-10 items-center gap-3 rounded-md px-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-lilas"
                     :class="item.current ? 'bg-lilas-soft text-lilas-light' : 'text-atelier-muted hover:bg-atelier-hover hover:text-atelier-ink'"
                     :aria-current="item.current ? 'page' : undefined"
@@ -49,7 +51,7 @@
                         v-if="item.external"
                         class="size-3.5 opacity-60"
                         aria-hidden="true"/>
-                </NuxtLink>
+                </component>
             </li>
         </ul>
         <div class="flex-1"/>
@@ -81,6 +83,7 @@
 
 <script setup lang="ts">
 import type {Component} from 'vue';
+import {RouterLink} from 'vue-router';
 import {ArrowRightStartOnRectangleIcon, ArrowUpRightIcon} from '@heroicons/vue/24/outline';
 import DownloadBookButton from "~/components/admin/ui/DownloadBookButton.vue";
 

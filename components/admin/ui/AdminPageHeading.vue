@@ -15,13 +15,13 @@
             <BaseButton
                 v-if="editUrl"
                 outlined
-                @click="navigateTo(editUrl)"
+                @click="$router.push(editUrl)"
             >
                 Modifier
             </BaseButton>
             <BaseButton
                 v-if="addUrl"
-                @click="navigateTo(addUrl)"
+                @click="$router.push(addUrl)"
             >
                 <PlusIcon
                     class="mr-2 -ml-1 size-4"

@@ -20,16 +20,16 @@ services:
       timeout: 5s
       retries: 5
 
-  nuxt:
-    build: .
-    #      context: .
-    #      dockerfile: Dockerfile
-    container_name: nuxt-node-container
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: livre-app
     volumes:
       - .:/app
       - /app/node_modules
-      - /app/.nuxt
-    command: sh -c "npm run init-db && npm run dev"
+      - /app/.astro
+    command: sh -c "npm run init-db && npm run seed && npm run dev"
     ports:
       - "3000:3000"
       - "4000:4000"
@@ -39,6 +39,8 @@ services:
     networks:
       - nuxt-postgres-network
     env_file:
+      - path: .env
+        required: false
       - path: .env.local
         required: false
     environment:

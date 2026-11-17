@@ -23,6 +23,10 @@ describe('sanitizeHtml', () => {
             .toBe('<p>vers</p><img src="x">');
     });
 
+    it('garde le texte des liens, sans le lien', () => {
+        expect(sanitizeHtml(purify, '<p>les <a href="https://exemple.fr">rosiers</a></p>')).toBe('<p>les rosiers</p>');
+    });
+
     it('ne laisse pas la règle d’alignement active après usage', () => {
         sanitizeHtml(purify, '<p style="text-align: left">a</p>');
         expect(purify.sanitize('<p style="color: red">a</p>')).toBe('<p style="color: red">a</p>');

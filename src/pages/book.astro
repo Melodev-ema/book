@@ -1,0 +1,12 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import BookPage from '../../components/poems/BookPage.vue';
+
+// L'accès (session ou jeton) est vérifié par le middleware
+const token = Astro.url.searchParams.get('token') || '';
+// ?extrait=1 : l'extrait gratuit (« 0 » ou absent : le livre entier)
+const excerpt = Astro.url.searchParams.get('extrait') === '1';
+---
+<BaseLayout title="Livre" theme="dark">
+    <BookPage token={token} excerpt={excerpt} client:only="vue"/>
+</BaseLayout>

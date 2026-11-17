@@ -1,9 +1,9 @@
+import {defineEventHandler, createError, readBody} from 'h3';
+import {requireUserSession} from '~/server/utils/session';
 import Post from "~/server/models/post";
 import {sanitizeContent} from "~/server/services/contentSanitizer";
 
 export default defineEventHandler(async (event/**/) => {
-
-    //@todo : access control from connected user or external api with token
     await requireUserSession(event);
 
     const body = await readBody(event);
@@ -19,16 +19,12 @@ export default defineEventHandler(async (event/**/) => {
 
         const content = sanitizeContent(body.content);
 
-        try {
-            return await Post.create({
-                postTitle: body.postTitle,
-                author: body.author,
-                content: content,
-                publishDate: new Date(),
-            });
-        } catch (error) {
-            return error;
-        }
+        return await Post.create({
+            postTitle: body.postTitle,
+            author: body.author ?? '',
+            content: content,
+            publishDate: new Date(),
+        });
 
     }
 
@@ -40,21 +36,12 @@ export default defineEventHandler(async (event/**/) => {
         });
     }
 
-    try {
-        await Post.update(
-            {
-                postTitle: body.postTitle,
-                content: sanitizeContent(body.content),
-            },
-            {
-                where: {
-                    id: body.id
-                }
-            }
-        );
-        return await Post.findByPk(body.id);
-    } catch (error) {
-        return error;
-    }
+    await post.update({
+        postTitle: body.postTitle,
+        content: sanitizeContent(body.content),
+        // L'auteur n'est modifié que s'il est envoyé
+        ...(typeof body.author === 'string' ? {author: body.author} : {}),
+    });
+    return post;
 
 });

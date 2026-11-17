@@ -37,13 +37,13 @@ import SafeHtml from "~/components/layout/SafeHtml.vue";
         </header>
         <div>
             <div
-                v-for="contentLine in contentLines"
-                :key="contentLine"
+                v-for="(contentLine, lineIndex) in contentLines"
+                :key="lineIndex"
                 :class="contentSplit(contentLine)?.length > 1 ? 'grid grid-cols-2 gap-6' : ''"
             >
                 <div
-                    v-for="contentLinePart in contentSplit(contentLine)"
-                    :key="contentLinePart"
+                    v-for="(contentLinePart, partIndex) in contentSplit(contentLine)"
+                    :key="partIndex"
                     class="min-h-4 first-letter:uppercase">
                     <SafeHtml :raw-html="contentLinePart"/>
                 </div>
@@ -71,13 +71,14 @@ export default defineComponent({
             type: Number,
             required: true
         },
+        // Absents en début et fin de livre
         nextPageId: {
             type: Number,
-            required: true
+            default: undefined
         },
         prevPageId: {
             type: Number,
-            required: true
+            default: undefined
         },
         title: {
             type: String,

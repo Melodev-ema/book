@@ -5,7 +5,6 @@ import {sanitizeContent} from "~/server/services/contentSanitizer";
 import {extractPostFromFile} from "~/server/services/postExtractor";
 import type {MultiPartData} from "h3";
 
-
 export interface ImportResult {
     posts: {
         success: number
@@ -16,15 +15,32 @@ export interface ImportResult {
     errors?: string[]
 }
 
-export async function importFromJson(json: { data: MultiPartData[] }) {
-    const {data} = json;
+// Fichier .json : un texte ({postTitle, author, content, publishDate?}) ou un tableau de textes
+export async function importFromJson(json: { data: MultiPartData[] }): Promise<ImportResult[]> {
+    const posts: PostInterface[] = [];
+    const errors: string[] = [];
 
-    return await Promise.all([
-        importPosts(data),
-    ]);
+    for (const file of json.data) {
+        try {
+            const parsed = JSON.parse(file.data.toString('utf8'));
+            posts.push(...(Array.isArray(parsed) ? parsed : [parsed]));
+        } catch {
+            errors.push(`${file.filename ?? 'Fichier'} : JSON illisible`);
+        }
+    }
+
+    const result = await importPosts(posts);
+    return [{
+        posts: {
+            success: result.posts.success,
+            error: result.posts.error + errors.length,
+            total: result.posts.total + errors.length,
+        },
+        errors,
+    }];
 }
 
-export async function importFromText(files: { data: MultiPartData[] }) {
+export async function importFromText(files: { data: MultiPartData[] }): Promise<ImportResult[]> {
     const {data} = files;
 
     return await Promise.all([
@@ -32,7 +48,7 @@ export async function importFromText(files: { data: MultiPartData[] }) {
     ]);
 }
 
-async function getPostsFromTextFiles(files: MultiPartData[]) {
+async function getPostsFromTextFiles(files: MultiPartData[]): Promise<ImportResult> {
 
     const aiApi = new AiHttpClient();
     const errors: string[] = [];
@@ -83,13 +99,18 @@ async function importPosts(posts: PostInterface[]): Promise<ImportResult> {
 
         const content = sanitizeContent(post.content);
 
-        await Post.create({
-            postTitle: post.postTitle,
-            author: post.author,
-            content: content,
-            attachments: post.attachments,
-            publishDate: date,
-        });
+        try {
+            await Post.create({
+                postTitle: post.postTitle,
+                author: post.author,
+                content: content,
+                attachments: typeof post.attachments === 'string' ? post.attachments : null,
+                publishDate: date,
+            });
+        } catch (error) {
+            console.error('import: enregistrement impossible', error);
+            return false;
+        }
 
         return true;
     }));

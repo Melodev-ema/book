@@ -4,8 +4,8 @@
             class="relative hidden items-center justify-center overflow-hidden border-r border-atelier-line bg-atelier-panel lg:flex"
             aria-hidden="true"
         >
-            <NuxtLink
-                to="/"
+            <a
+                href="/"
                 class="absolute top-8 left-10 flex items-center gap-2.5 text-atelier-ink"
                 tabindex="-1"
             >
@@ -24,7 +24,7 @@
                     stroke="currentColor"
                     stroke-width="1.5"/></svg>
                 <span class="font-fraunces text-lg font-medium">L'atelier</span>
-            </NuxtLink>
+            </a>
             <div class="relative flex shadow-page">
                 <div class="flex aspect-[148/210] w-[min(18vw,250px)] flex-col items-center bg-page px-[11%] pt-[12%]">
                     <span class="font-newsreader text-[0.4rem] tracking-[0.2em] text-page-muted uppercase">Dédicace</span>
@@ -99,19 +99,6 @@
                         @input="updateCredentialsPassword"
                     >
                 </div>
-
-                <label
-                    for="remember-me"
-                    class="flex cursor-pointer items-center gap-2.5 text-sm"
-                >
-                    <input
-                        id="remember-me"
-                        name="remember-me"
-                        type="checkbox"
-                        class="size-[18px] accent-lilas"
-                    >
-                    Se souvenir de moi
-                </label>
 
                 <button
                     type="submit"

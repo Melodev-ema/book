@@ -8,11 +8,11 @@
                 loading ? 'cursor-not-allowed bg-opacity-75' : '',
                 sizeClass
             ]"
-        :disabled="loading"
+        :disabled="loading || disabled"
         @click="$emit('click')"
     >
         <span class="flex items-center">
-            <arrow-path-icon
+            <ArrowPathIcon
                 v-if="loading"
                 class="animate-spin h-5 w-5 mr-2"
                 aria-hidden="true"
@@ -37,6 +37,10 @@ export default defineComponent({
             default: false,
         },
         loading: {
+            type: Boolean,
+            default: false,
+        },
+        disabled: {
             type: Boolean,
             default: false,
         },

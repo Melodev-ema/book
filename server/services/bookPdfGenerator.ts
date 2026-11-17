@@ -2,10 +2,28 @@ import puppeteer from 'puppeteer';
 import {PDFDocument} from 'pdf-lib';
 import {bookRenderProblem} from './bookRenderCheck';
 
-// excerpt : n'imprime que les premiers textes du livre (l'extrait gratuit)
-export async function generatePdfFromEvent(token: string, protocol: string, host: string, {excerpt = false} = {}) {
+// Le navigateur headless tourne à côté du serveur : il l'appelle en local, jamais par l'adresse
+// publique (derrière un proxy comme Traefik, livre.localhost:80 n'existe pas dans le conteneur)
+function internalBaseUrl() {
+    return `http://127.0.0.1:${process.env.PORT || 3000}`;
+}
 
-    const url = `${protocol}://${host}/book?token=${token}${excerpt ? '&extrait=1' : ''}`;
+// Un seul Chromium à la fois : plusieurs demandes simultanées (extrait gratuit, admin) attendent leur tour
+let queue: Promise<unknown> = Promise.resolve();
+
+// excerpt : n'imprime que les premiers textes du livre (l'extrait gratuit)
+export function generatePdfFromEvent(token: string | undefined, {excerpt = false} = {}): Promise<Buffer> {
+    const run = queue.then(() => renderPdf(token, excerpt));
+    queue = run.catch(() => undefined);
+    return run;
+}
+
+async function renderPdf(token: string | undefined, excerpt: boolean) {
+    if (!token) {
+        throw new Error('PDF_API_TOKEN n\'est pas configuré');
+    }
+
+    const url = `${internalBaseUrl()}/book?token=${encodeURIComponent(token)}${excerpt ? '&extrait=1' : ''}`;
 
     const browser = await puppeteer.launch({
         executablePath: process.env.PUPPETEER_EXECUTABLE_PATH,

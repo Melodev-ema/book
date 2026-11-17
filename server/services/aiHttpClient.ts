@@ -3,7 +3,6 @@ interface AiPromptMessage {
     content: string;
 }
 
-
 interface AiResponse {
     choices: AiResponseChoice[];
 }
@@ -135,4 +134,3 @@ export class AiHttpClient {
         return await this.post(aiRequestBody);
     }
 }
-

@@ -110,7 +110,8 @@
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue';
+import {defineComponent, type PropType} from 'vue';
+import {RouterLink} from 'vue-router';
 import {PencilIcon, TrashIcon, EllipsisHorizontalIcon} from "@heroicons/vue/24/outline";
 
 interface Row {
@@ -125,6 +126,7 @@ interface Column {
 }
 
 export default defineComponent({
+    components: {RouterLink},
     props: {
         columns: {
             type: Array as PropType<Column[]>,

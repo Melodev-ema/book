@@ -2,11 +2,7 @@
 export default {
     content: [
         "./components/**/*.{js,vue,ts}",
-        "./layouts/**/*.vue",
-        "./pages/**/*.vue",
-        "./plugins/**/*.{js,ts}",
-        "./app.vue",
-        "./error.vue",
+        "./src/**/*.{astro,vue,ts}",
     ],
     theme: {
         extend: {
@@ -32,19 +28,6 @@ export default {
                 '4xl': '2rem',
                 '5xl': '3rem',
                 '6xl': '5rem',
-            },
-            fontFamily: {
-                display: [
-                    'Cabinet Grotesk',
-                    'Satoshi',
-                    'ui-sans-serif',
-                    'system-ui',
-                    'sans-serif',
-                    'Apple Color Emoji',
-                    'Segoe UI Emoji',
-                    'Segoe UI Symbol',
-                    'Noto Color Emoji',
-                ],
             },
         },
         screens: {

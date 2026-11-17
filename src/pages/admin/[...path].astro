@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdminApp from '../../admin/AdminApp.vue';
+
+// L'accès (session) est vérifié par le middleware ; le router gère les sous-chemins
+---
+<BaseLayout title="Colophon">
+    <AdminApp client:only="vue"/>
+</BaseLayout>

@@ -35,6 +35,11 @@ describe('excerptMail', () => {
         expect(mail().offersLine).toBe('La suite : E-book 5 € · Livre imprimé 29 €');
     });
 
+    it('n\'annonce aucune suite sans offre à acheter', () => {
+        expect(mail({offers: []}).offersLine).toBe('');
+        expect(mail({offers: []}).text).not.toContain('La suite');
+    });
+
     it('repeats the message in the plain text version', () => {
         const {text} = mail();
         expect(text).toContain('Les premiers textes de « Mon petit livre »');

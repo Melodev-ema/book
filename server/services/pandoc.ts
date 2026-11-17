@@ -112,10 +112,9 @@ export async function extractWithPandoc(file: Buffer, fromFormat: string): Promi
             mdPath
         ]);
 
+        // Avertissements seulement (une vraie erreur fait échouer execFile) : le texte reste exploitable
         if (stderr) {
-            // on peut logguer ou retourner une chaîne vide selon votre besoin
             console.warn('pandoc stderr:', stderr);
-            return '';
         }
 
         return stdout;
@@ -123,9 +122,9 @@ export async function extractWithPandoc(file: Buffer, fromFormat: string): Promi
         // 5. Nettoyage : on supprime les fichiers temporaires
         for (const path of [inPath, mdPath, filterPath, stanzaFilterPath]) {
             try {
-                await unlink(path)
+                await unlink(path);
             } catch (e) {
-                console.warn(`rm ${path}:`, e)
+                console.warn(`rm ${path}:`, e);
             }
         }
     }

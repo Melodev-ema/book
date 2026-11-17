@@ -21,7 +21,7 @@ export interface ExcerptMail {
 
 export function excerptMail({title, author, textCount, offers, footer}: ExcerptMailInput): ExcerptMail {
     const lead = `Merci pour votre intérêt. Les premiers textes de « ${title} » vous attendent en pièce jointe.`;
-    const offersLine = `La suite : ${offers.map(offer => `${offer.name} ${offer.price} €`).join(' · ')}`;
+    const offersLine = offers.length ? `La suite : ${offers.map(offer => `${offer.name} ${offer.price} €`).join(' · ')}` : '';
 
     return {
         senderName: author.trim() || title,
@@ -30,6 +30,6 @@ export function excerptMail({title, author, textCount, offers, footer}: ExcerptM
         attachment: `extrait.pdf · ${textCount} ${textCount === 1 ? 'texte' : 'textes'}`,
         offersLine,
         footer,
-        text: ['Un extrait, offert.', lead, offersLine, footer].join('\n\n'),
+        text: ['Un extrait, offert.', lead, offersLine, footer].filter(Boolean).join('\n\n'),
     };
 }

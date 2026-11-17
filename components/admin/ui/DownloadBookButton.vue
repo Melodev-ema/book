@@ -19,16 +19,12 @@
 <script lang="ts">
 import {defineComponent} from "vue";
 import {ArrowDownTrayIcon, ArrowPathIcon} from "@heroicons/vue/24/outline";
+import {apiTry} from "~/utils/api";
+import {toast} from "~/utils/toast";
 
 export default defineComponent({
     name: "DownloadBookButton",
     components: {ArrowDownTrayIcon, ArrowPathIcon},
-    setup() {
-        const toast = useToast();
-        return {
-            toast
-        };
-    },
     data() {
         return {
             generating: false,
@@ -39,23 +35,14 @@ export default defineComponent({
         async downloadBook() {
             this.generating = true;
             try {
-                const {data, error} = await useFetch('/api/generate-pdf', {
-                    method: 'POST',
-                    responseType: 'blob',
-                });
+                const {data: blob, error} = await apiTry<Blob>('/api/generate-pdf', {method: 'POST'});
 
-                if (error.value) {
-                    this.toast.add({
-                        id: 'error',
-                        color: 'error',
-                        icon: 'i-material-symbols-file-download-off',
-                        title: 'Erreur lors de la génération du PDF',
-                    });
+                if (error || !blob) {
+                    toast.error('Erreur lors de la génération du PDF');
                     return;
                 }
 
                 try {
-                    const blob = data.value;
 
                     const url = window.URL.createObjectURL(blob);
                     const link = document.createElement('a');
@@ -66,18 +53,9 @@ export default defineComponent({
                     document.body.removeChild(link);
                     window.URL.revokeObjectURL(url);
 
-                    this.toast.add({
-                        id: 'downloaded',
-                        icon: 'i-material-symbols-download',
-                        title: 'Le livre a été téléchargé avec succès',
-                    });
+                    toast.success('Le livre a été téléchargé avec succès');
                 } catch {
-                    this.toast.add({
-                        id: 'error',
-                        color: 'error',
-                        icon: 'i-material-symbols-file-download-off',
-                        title: 'Erreur lors de la génération du PDF',
-                    });
+                    toast.error('Erreur lors de la génération du PDF');
                 }
 
             } catch (error) {

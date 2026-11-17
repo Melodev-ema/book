@@ -19,6 +19,8 @@ jobs:
 
       - run: npm run lint
 
+      - run: npm run check
+
       # Les tests d'import (.docx, .odt, .md) passent par pandoc. Celui d'Ubuntu (3.1) lit les légendes
       # d'images comme du texte : on prend la version de la prod (pandoc-cli d'Alpine).
       - run: |
